@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group = 'fr.traqueur'
+version = property("version")
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
+}
+
+dependencies {
+    compileOnly "org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT"
+}
+
+tasks.register('generateVersionProperties') {
+    doLast {
+        def file = new File("$projectDir/src/main/resources/version.properties")
+        if (!file.parentFile.exists()) {
+            file.parentFile.mkdirs()
+        }
+        file.text = "version=${project.version}"
+    }
+}
+
+processResources.dependsOn generateVersionProperties
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
