@@ -9,6 +9,16 @@ import org.bukkit.inventory.recipe.CraftingBookCategory;
 
 /**
  * This class represents a recipe for an item
+ * @param recipeName The name of the recipe
+ * @param group The group of the recipe
+ * @param category The category of the recipe
+ * @param recipeType The type of the recipe
+ * @param result The result of the recipe
+ * @param amount The amount of the result
+ * @param ingredients The ingredients of the recipe
+ * @param pattern The pattern of the recipe
+ * @param cookingTime The cooking time of the recipe
+ * @param experience The experience of the recipe
  */
 public record ItemRecipe(String recipeName, String group, String category, RecipeType recipeType, ItemStack result, int amount, Ingredient[] ingredients,
                          String[] pattern, int cookingTime, float experience) {

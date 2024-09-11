@@ -17,24 +17,28 @@ public interface Recipe {
 
     /**
      * Set the name of the recipe.
+     * @param name The name of the recipe.
      * @return The name of the recipe.
      */
     Recipe setName(String name);
 
     /**
      * Set the result of the recipe.
+     * @param result The result of the recipe.
      * @return The result of the recipe.
      */
     Recipe setResult(ItemStack result);
 
     /**
      * Set the amount of the result.
+     * @param amount The amount of the result.
      * @return The amount of the result.
      */
     Recipe setAmount(int amount);
 
     /**
      * Set the type of the recipe.
+     * @param type The type of the recipe.
      * @return The type of the recipe.
      */
     Recipe setType(RecipeType type);
@@ -146,18 +150,21 @@ public interface Recipe {
 
     /**
      * Set the group of the recipe.
+     * @param group The group of the recipe.
      * @return The group of the recipe.
      */
     Recipe setGroup(String group);
 
     /**
      * Set the category of the recipe.
+     * @param category The category of the recipe.
      * @return The category of the recipe.
      */
     Recipe setCategory(String category);
 
     /**
      * Set the pattern of the recipe.
+     * @param pattern The pattern of the recipe.
      * @return The pattern of the recipe.
      */
     Recipe setPattern(String... pattern);
@@ -165,12 +172,14 @@ public interface Recipe {
     /**
      * Set the cooking time of the recipe.
      * @return The cooking time of the recipe.
+     * @param cookingTime The cooking time of the recipe.
      */
     Recipe setCookingTime(int cookingTime);
 
     /**
      * Set the experience of the recipe.
      * @return The experience of the recipe.
+     * @param experience The experience of the recipe.
      */
     Recipe setExperience(float experience);
 

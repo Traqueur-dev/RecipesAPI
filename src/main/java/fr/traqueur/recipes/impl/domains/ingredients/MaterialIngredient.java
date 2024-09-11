@@ -5,6 +5,9 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 
+/**
+ * A material ingredient
+ */
 public class MaterialIngredient extends BaseIngredient {
 
     /**
