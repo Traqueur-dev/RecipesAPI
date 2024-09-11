@@ -13,13 +13,27 @@ import java.util.logging.Logger;
  */
 public class Updater {
 
+    /**
+     * Check updates the plugin
+     * @param name The name of the plugin
+     */
     public static void update(String name) {
         new Updater(name).checkUpdates();
     }
 
+    /**
+     * The URL of the GitHub API
+     */
     private static final String API_URL = "https://api.github.com/repos/Traqueur-dev/{name}/releases/latest";
+    /**
+     * The name of the plugin
+     */
     private final String name;
 
+    /**
+     * Create a new Updater
+     * @param name The name of the plugin
+     */
     private Updater(String name) {
         this.name = name;
     }
