@@ -9,19 +9,37 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Objects;
 
+/**
+ * This class represents an ingredient that is an item stack
+ */
 public class ItemStackIngredient extends BaseIngredient {
 
+    /**
+     * The item of the ingredient
+     */
     protected final ItemStack item;
 
+    /**
+     * Create a new ItemStackIngredient
+     * @param item The item of the ingredient
+     * @param sign The sign of the ingredient
+     */
     public ItemStackIngredient(ItemStack item, Character sign) {
         super(sign);
         this.item = item;
     }
 
+    /**
+     * Create a new ItemStackIngredient
+     * @param item The item of the ingredient
+     */
     public ItemStackIngredient(ItemStack item) {
         this(item, null);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isSimilar(ItemStack item) {
 
@@ -31,6 +49,12 @@ public class ItemStackIngredient extends BaseIngredient {
                 && (!item.hasItemMeta() || similarMeta(item.getItemMeta(), this.item.getItemMeta()));
     }
 
+    /**
+     * Check if the meta of the two items are similar
+     * @param sourceMeta The source meta
+     * @param ingredientMeta The ingredient meta
+     * @return True if the meta of the two items are similar
+     */
     private boolean similarMeta(ItemMeta sourceMeta, ItemMeta ingredientMeta) {
         for (NamespacedKey key : sourceMeta.getPersistentDataContainer().getKeys()) {
             if (!ingredientMeta.getPersistentDataContainer().has(key)) {
@@ -48,6 +72,9 @@ public class ItemStackIngredient extends BaseIngredient {
         return lore && customData;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public RecipeChoice choice() {
         return new RecipeChoice.MaterialChoice(this.item.getType());

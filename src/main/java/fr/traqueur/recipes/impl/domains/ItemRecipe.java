@@ -7,9 +7,18 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
 
+/**
+ * This class represents a recipe for an item
+ */
 public record ItemRecipe(String recipeName, String group, String category, RecipeType recipeType, ItemStack result, int amount, Ingredient[] ingredients,
                          String[] pattern, int cookingTime, float experience) {
 
+    /**
+     * Convert the recipe to a bukkit recipe
+     * @param key The key of the recipe
+     * @param result The result of the recipe
+     * @return The bukkit recipe
+     */
     public Recipe toBukkitRecipe(NamespacedKey key, ItemStack result) {
         return switch (this.recipeType) {
             case CRAFTING_SHAPED -> {
@@ -90,6 +99,10 @@ public record ItemRecipe(String recipeName, String group, String category, Recip
         };
     }
 
+    /**
+     * Convert the recipe to a bukkit recipe
+     * @return The bukkit recipe
+     */
     public Recipe toBukkitRecipe() {
         ItemStack result = new ItemStack(this.result());
         result.setAmount(this.amount());
@@ -97,6 +110,10 @@ public record ItemRecipe(String recipeName, String group, String category, Recip
         return this.toBukkitRecipe(key, result);
     }
 
+    /**
+     * Get the key of the recipe
+     * @return The key of the recipe
+     */
     public NamespacedKey getKey() {
         return this.recipeType().getNamespacedKey(recipeName);
     }

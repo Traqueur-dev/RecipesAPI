@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * This class is used to build recipes.
+ */
 public class RecipeBuilder implements Recipe {
 
     private String name;

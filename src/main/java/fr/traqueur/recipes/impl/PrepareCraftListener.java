@@ -16,14 +16,29 @@ import org.bukkit.inventory.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * This class is used to listen to events that are related to the api.
+ */
 public class PrepareCraftListener implements Listener {
 
+    /**
+     * The API instance.
+     */
     private final RecipesAPI api;
 
+    /**
+     * Creates a new PrepareCraftListener instance.
+     * @param api the API instance
+     */
     public PrepareCraftListener(RecipesAPI api) {
         this.api = api;
     }
 
+    /**
+     * Get the recipes for an item.
+     * @param item the item
+     * @param recipeType the recipe type
+     */
     private <T extends Recipe> List<T> getRecipeFor(ItemStack item, Class<T> recipeType) {
         List<T> recipes = new ArrayList<>();
         for (Recipe recipe : api.getPlugin().getServer().getRecipesFor(item)) {
@@ -35,6 +50,10 @@ public class PrepareCraftListener implements Listener {
     }
 
 
+    /**
+     * This method is called when a block is smelted.
+     * @param event the event
+     */
     @EventHandler
     public void onSmelt(BlockCookEvent event) {
         if(event.isCancelled()) {
@@ -61,6 +80,10 @@ public class PrepareCraftListener implements Listener {
         }
     }
 
+    /**
+     * This method is called when a smithing transformation is prepared.
+     * @param event the event
+     */
     @EventHandler
     public void onSmithingTransform(PrepareSmithingEvent event) {
         if(event.getInventory().getRecipe() == null) {
@@ -102,10 +125,20 @@ public class PrepareCraftListener implements Listener {
         }
     }
 
+    /**
+     * Check if an item is similar to an ingredient.
+     * @param item the item
+     * @param itemIngredient the ingredient
+     * @return true if the item is similar to the ingredient, false otherwise
+     */
     private boolean isSimilar(ItemStack item, Ingredient itemIngredient) {
         return itemIngredient.isSimilar(item);
     }
 
+    /**
+     * This method is called when an item is prepared to be crafted.
+     * @param event the event
+     */
     @EventHandler
     public void onPrepareCraft(PrepareItemCraftEvent event) {
         Recipe recipe = event.getRecipe();
@@ -128,6 +161,11 @@ public class PrepareCraftListener implements Listener {
         }
     }
 
+    /**
+     * Check if the recipe is good for a shaped recipe.
+     * @param itemRecipe the item recipe
+     * @param event the event
+     */
     private void checkGoodShapedRecipe(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
         AtomicBoolean isSimilar = new AtomicBoolean(true);
         ItemStack[] matrix = event.getInventory().getMatrix();
@@ -148,6 +186,11 @@ public class PrepareCraftListener implements Listener {
         }
     }
 
+    /**
+     * Check if the recipe is good for a shapeless recipe.
+     * @param itemRecipe the item recipe
+     * @param event the event
+     */
     private void checkGoodShapelessRecipe(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
         List<ItemStack> matrix = Arrays.stream(event.getInventory().getMatrix()).filter(Objects::nonNull).toList();
         Ingredient[] itemIngredients = itemRecipe.ingredients();
