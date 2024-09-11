@@ -1,6 +1,7 @@
-package fr.traqueur.recipes.api.domains;
+package fr.traqueur.recipes.impl.domains;
 
 import fr.traqueur.recipes.api.RecipeType;
+import fr.traqueur.recipes.api.domains.Ingredient;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.recipe.CookingBookCategory;
@@ -92,10 +93,11 @@ public record ItemRecipe(String recipeName, String group, String category, Recip
     public Recipe toBukkitRecipe() {
         ItemStack result = new ItemStack(this.result());
         result.setAmount(this.amount());
-        NamespacedKey key = this.recipeType().getNamespacedKey(recipeName);
+        NamespacedKey key = this.getKey();
         return this.toBukkitRecipe(key, result);
     }
 
-
-    public record Ingredient(RecipeChoice choice, String ingredientName, char sign) { }
+    public NamespacedKey getKey() {
+        return this.recipeType().getNamespacedKey(recipeName);
+    }
 }
