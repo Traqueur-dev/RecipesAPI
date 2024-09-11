@@ -1,4 +1,4 @@
-package fr.traqueur.recipes.impl;
+package fr.traqueur.recipes.impl.domains.recipes;
 
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.domains.Recipe;
@@ -15,17 +15,59 @@ import java.util.List;
  */
 public class RecipeBuilder implements Recipe {
 
-    private String name;
-    private ItemStack result;
-    private int amount = 1;
-    private RecipeType type = null;
-    private List<Ingredient> ingredientList = new ArrayList<>();
-    private String group = "";
-    private String category = "";
-    private String[] pattern = null;
-    private int cookingTime = 0;
-    private float experience = 0;
+    /**
+     * The list of ingredients.
+     */
+    private final List<Ingredient> ingredientList = new ArrayList<>();
 
+    /**
+     * The name of the recipe.
+     */
+    private String name;
+
+    /**
+     * The result of the recipe.
+     */
+    private ItemStack result;
+
+    /**
+     * The amount of the result.
+     */
+    private int amount;
+
+    /**
+     * The type of the recipe.
+     */
+    private RecipeType type;
+
+    /**
+     * The group of the recipe.
+     */
+    private String group;
+
+    /**
+     * The category of the recipe.
+     */
+    private String category;
+
+    /**
+     * The cooking time of the recipe.
+     */
+    private int cookingTime;
+
+    /**
+     * The experience of the recipe.
+     */
+    private float experience;
+
+    /**
+     * The pattern of the recipe.
+     */
+    private String[] pattern = null;
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe setName(String name) {
         if(type == null) {
@@ -35,6 +77,9 @@ public class RecipeBuilder implements Recipe {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe setResult(ItemStack result) {
         if(type == null) {
@@ -44,18 +89,27 @@ public class RecipeBuilder implements Recipe {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe setAmount(int amount) {
         this.amount = amount;
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe setType(RecipeType type) {
         this.type = type;
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe addIngredient(Ingredient ingredient) {
         if(type == null) {
@@ -84,6 +138,9 @@ public class RecipeBuilder implements Recipe {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe setGroup(String group) {
         if(type == null) {
@@ -93,6 +150,9 @@ public class RecipeBuilder implements Recipe {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe setCategory(String category) {
         if(type == null) {
@@ -106,6 +166,9 @@ public class RecipeBuilder implements Recipe {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe setPattern(String[] pattern) {
         if(type == null) {
@@ -134,6 +197,9 @@ public class RecipeBuilder implements Recipe {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe setCookingTime(int cookingTime) {
         if(type == null) {
@@ -146,6 +212,9 @@ public class RecipeBuilder implements Recipe {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Recipe setExperience(float experience) {
         if(type == null) {
@@ -158,11 +227,17 @@ public class RecipeBuilder implements Recipe {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public RecipeType getType() {
         return type;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ItemRecipe build() {
         if (name == null) {
@@ -177,22 +252,6 @@ public class RecipeBuilder implements Recipe {
             throw new IllegalArgumentException("Type is not set");
         }
 
-        if (ingredientList.isEmpty()) {
-            throw new IllegalArgumentException("Ingredients are not set");
-        }
-
-        if (type == RecipeType.CRAFTING_SHAPED && pattern == null) {
-            throw new IllegalArgumentException("Pattern is not set");
-        }
-
-        if (type == RecipeType.CRAFTING_SHAPED && pattern.length == 0) {
-            throw new IllegalArgumentException("Pattern is empty");
-        }
-
-        if(RecipeType.smeltingRecipes().contains(type) && cookingTime == 0) {
-            throw new IllegalArgumentException("Cooking time is not set");
-        }
-
-        return new ItemRecipe(name, group, category, type, result, amount, ingredientList.toArray(new Ingredient[0]), pattern, cookingTime, experience);
+        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, result, amount, experience);
     }
 }

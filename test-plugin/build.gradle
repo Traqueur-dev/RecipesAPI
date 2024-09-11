@@ -16,10 +16,15 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
+    maven {
+        name = "jitpack"
+        url = "https://jitpack.io"
+    }
 }
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT")
+    implementation "com.github.technicallycoded:FoliaLib:main-SNAPSHOT"
     implementation rootProject
 }
 
@@ -53,5 +58,6 @@ processResources {
 build.dependsOn shadowJar
 
 shadowJar {
-    relocate 'fr.traqueur.recipes', "fr.traqueur.testplugin.api.recipes"
+    relocate "fr.traqueur.recipes", "fr.traqueur.testplugin.api.recipes"
+    relocate "com.tcoded.folialib", "fr.traqueur.testplugin.api.folialib"
 }

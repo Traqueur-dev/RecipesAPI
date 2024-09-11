@@ -1,14 +1,21 @@
 package fr.traqueur.recipes.api;
 
-import fr.traqueur.recipes.api.domains.Recipe;
+import com.tcoded.folialib.FoliaLib;
 import fr.traqueur.recipes.impl.PrepareCraftListener;
+import fr.traqueur.recipes.impl.domains.recipes.RecipeConfiguration;
 import fr.traqueur.recipes.impl.RecipesListener;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import fr.traqueur.recipes.impl.updater.Updater;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * RecipesAPI is the main class of the API
@@ -46,9 +53,35 @@ public final class RecipesAPI {
         plugin.getServer().getPluginManager().registerEvents(new PrepareCraftListener(this), plugin);
         plugin.getServer().getPluginManager().registerEvents(new RecipesListener(this), plugin);
 
+        var recipeFolder = new File(plugin.getDataFolder(), "recipes");
+        if (!recipeFolder.exists() && !recipeFolder.mkdirs()) {
+            plugin.getLogger().warning("Could not create recipes folder.");
+            return;
+        }
+
+        new FoliaLib(plugin).getScheduler().runNextTick((wrappedTask) -> this.addConfiguredRecipes(recipeFolder));
+
         if(this.debug) {
             Updater.update("RecipesAPI");
         }
+    }
+
+    private void addConfiguredRecipes(File recipeFolder) {
+        try (Stream<Path> stream = Files.walk(recipeFolder.toPath())) {
+            stream.skip(1)
+                    .map(Path::toFile)
+                    .filter(File::isFile)
+                    .filter(e -> e.getName().endsWith(".yml"))
+                    .forEach(this::loadRecipe);
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private void loadRecipe(File file) {
+        YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+        var recipe = new RecipeConfiguration(file.getName().replace(".yml", ""), configuration).build();
+        this.addRecipe(recipe, true);
     }
 
     /**
@@ -75,12 +108,27 @@ public final class RecipesAPI {
     /**
      * Add a recipe to the list of recipes
      * @param recipe The recipe to add
+     * @param register If the recipe should be registered to the server
      */
-    public void addRecipe(ItemRecipe recipe) {
+    public void addRecipe(ItemRecipe recipe, boolean register) {
         if(this.debug) {
             plugin.getLogger().info("Adding recipe: " + recipe.getKey());
         }
         this.recipes.add(recipe);
+        if(register) {
+            if (this.debug) {
+                plugin.getLogger().info("Registering recipe: " + recipe.getKey());
+            }
+            plugin.getServer().addRecipe(recipe.toBukkitRecipe());
+        }
+    }
+
+    /**
+     * Add a recipe to the list of recipes
+     * @param recipe The recipe to add
+     */
+    public void addRecipe(ItemRecipe recipe) {
+        this.addRecipe(recipe, false);
     }
 
     /**

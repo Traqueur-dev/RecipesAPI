@@ -1,7 +1,6 @@
 package fr.traqueur.recipes.impl.domains.ingredients;
 
 import fr.traqueur.recipes.api.domains.BaseIngredient;
-import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
