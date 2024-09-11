@@ -1,0 +1,4 @@
+name: test-plugin
+version: '1.0-SNAPSHOT'
+main: fr.traqueur.testplugin.TestPlugin
+api-version: '1.21'
