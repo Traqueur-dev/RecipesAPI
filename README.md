@@ -8,15 +8,11 @@
 - **Create Custom Recipes**: Add shaped, shapeless, and furnace, and other type recipes with ease.
 - **Advanced Recipe Handling**: Support for custom ingredients with meta data (e.g., items with custom names).
 - **Easy Integration**: Simple API to integrate into any Spigot plugin.
-- **Version Compatibility**: Works with recent Spigot versions and allows you to create recipes dynamically.
-
+- **Version Compatibility**: Works with recent Spigot versions and allows you to create recipes dynamically. Folia compatibility if you use FoliaLib.
 ## Installation
 
 0. **Prerequisites**: 
    - Make sure you have **Java 21+** and **Spigot** installed on your system.
-   - FoliaLib is required to use this API. You can find it [here](https://github.com/TechnicallyCoded/FoliaLib).
-   It's necessary to add it because recipes in configuration are load one tick delayed to permits plugin to load resources files.
-   And for be compatible with Folia, we must use Folialib to have good scheduler.
 1. Add **RecipesAPI** to your project via **JitPack**. Add the following to your `build.gradle`:
 
 ```groovy

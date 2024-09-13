@@ -6,6 +6,7 @@ import fr.traqueur.recipes.impl.domains.recipes.RecipeConfiguration;
 import fr.traqueur.recipes.impl.RecipesListener;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import fr.traqueur.recipes.impl.updater.Updater;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -59,8 +60,14 @@ public final class RecipesAPI {
             return;
         }
 
-        new FoliaLib(plugin).getScheduler().runNextTick((wrappedTask) -> this.addConfiguredRecipes(recipeFolder));
-
+        //Permits to use FoliaLib's scheduler if it's present in the plugin
+        try {
+            new FoliaLib(plugin).getScheduler()
+                    .runNextTick((wrappedTask) -> this.addConfiguredRecipes(recipeFolder));
+        } catch (NoClassDefFoundError e) {
+            Bukkit.getScheduler().runTaskLater(plugin,
+                    () -> this.addConfiguredRecipes(recipeFolder), 1);
+        }
         if(this.debug) {
             Updater.update("RecipesAPI");
         }

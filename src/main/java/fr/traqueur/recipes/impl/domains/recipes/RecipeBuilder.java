@@ -33,7 +33,7 @@ public class RecipeBuilder implements Recipe {
     /**
      * The amount of the result.
      */
-    private int amount;
+    private int amount = 1;
 
     /**
      * The type of the recipe.
@@ -43,22 +43,22 @@ public class RecipeBuilder implements Recipe {
     /**
      * The group of the recipe.
      */
-    private String group;
+    private String group = "";
 
     /**
      * The category of the recipe.
      */
-    private String category;
+    private String category = "";
 
     /**
      * The cooking time of the recipe.
      */
-    private int cookingTime;
+    private int cookingTime = 0;
 
     /**
      * The experience of the recipe.
      */
-    private float experience;
+    private float experience = 0;
 
     /**
      * The pattern of the recipe.

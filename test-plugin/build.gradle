@@ -24,7 +24,6 @@ repositories {
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT")
-    implementation "com.github.technicallycoded:FoliaLib:main-SNAPSHOT"
     implementation rootProject
 }
 
@@ -59,5 +58,4 @@ build.dependsOn shadowJar
 
 shadowJar {
     relocate "fr.traqueur.recipes", "fr.traqueur.testplugin.api.recipes"
-    relocate "com.tcoded.folialib", "fr.traqueur.testplugin.api.folialib"
 }

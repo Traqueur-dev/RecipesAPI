@@ -4,10 +4,14 @@ import fr.traqueur.recipes.api.RecipeType;
 import fr.traqueur.recipes.api.RecipesAPI;
 import fr.traqueur.recipes.impl.domains.recipes.RecipeBuilder;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
 
 public final class TestPlugin extends JavaPlugin {
 
@@ -17,7 +21,9 @@ public final class TestPlugin extends JavaPlugin {
     public void onEnable() {
         recipesAPI = new RecipesAPI(this, true);
 
-        this.saveResource("recipes/example.yml", false);
+        if(!new File(this.getDataFolder(), "recipes/example.yml").exists()) {
+            this.saveResource("recipes/example.yml", false);
+        }
 
         ItemRecipe recipe = new RecipeBuilder()
                 .setType(RecipeType.CRAFTING_SHAPELESS)
@@ -40,6 +46,7 @@ public final class TestPlugin extends JavaPlugin {
         ItemStack ingredient = new ItemStack(Material.PAPER);
         ItemMeta meta = ingredient.getItemMeta();
         meta.setDisplayName("Dirt Magic");
+        meta.setCustomModelData(1);
         ingredient.setItemMeta(meta);
 
         ItemRecipe recipe3 = new RecipeBuilder()
@@ -47,7 +54,7 @@ public final class TestPlugin extends JavaPlugin {
                 .setName("example-complex")
                 .setResult(new ItemStack(Material.DIAMOND))
                 .setAmount(64)
-                .addIngredient(ingredient, true)
+                .addIngredient(ingredient)
                 .build();
 
         ItemRecipe recipe4 = new RecipeBuilder()
