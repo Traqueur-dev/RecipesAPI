@@ -1,0 +1,26 @@
+# Type of the recipe
+# CRAFTING_SHAPED, CRAFTING_SHAPELESS, SMELTING, SMITHING_TRANSFORM
+# SMOKING, BLASTING, CAMPFIRE_COOKING, STONE_CUTTING
+type: CRAFTING_SHAPED
+
+# Not for Smithing recipes
+group: example
+
+# Not for Smithing recipes
+# FOOD, BLOCKS, MISC for smelting recipes
+# BUILDING, REDSTONE, EQUIPMENT, MISC for crafting recipes
+category: MISC
+pattern:
+  - "##"
+  - "##"
+result:
+  item: "material:diamond"
+  amount: 64
+ingredients:
+  - item: "material:stone"
+    sign: '#'
+
+# Only for smelt recipes
+#cooking-time: 100
+# Only for smelt recipes
+#experience: 100

@@ -8,10 +8,11 @@
 - **Create Custom Recipes**: Add shaped, shapeless, and furnace, and other type recipes with ease.
 - **Advanced Recipe Handling**: Support for custom ingredients with meta data (e.g., items with custom names).
 - **Easy Integration**: Simple API to integrate into any Spigot plugin.
-- **Version Compatibility**: Works with recent Spigot versions and allows you to create recipes dynamically.
-
+- **Version Compatibility**: Works with recent Spigot versions and allows you to create recipes dynamically. Folia compatibility if you use FoliaLib.
 ## Installation
 
+0. **Prerequisites**: 
+   - Make sure you have **Java 21+** and **Spigot** installed on your system.
 1. Add **RecipesAPI** to your project via **JitPack**. Add the following to your `build.gradle`:
 
 ```groovy

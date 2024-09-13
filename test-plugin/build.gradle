@@ -16,6 +16,10 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
+    maven {
+        name = "jitpack"
+        url = "https://jitpack.io"
+    }
 }
 
 dependencies {
@@ -53,5 +57,5 @@ processResources {
 build.dependsOn shadowJar
 
 shadowJar {
-    relocate 'fr.traqueur.recipes', "fr.traqueur.testplugin.api.recipes"
+    relocate "fr.traqueur.recipes", "fr.traqueur.testplugin.api.recipes"
 }

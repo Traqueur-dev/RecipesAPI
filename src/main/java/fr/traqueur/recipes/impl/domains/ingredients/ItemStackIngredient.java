@@ -1,7 +1,6 @@
 package fr.traqueur.recipes.impl.domains.ingredients;
 
 import fr.traqueur.recipes.api.domains.BaseIngredient;
-import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
@@ -58,16 +57,17 @@ public class ItemStackIngredient extends BaseIngredient {
     private boolean similarMeta(ItemMeta sourceMeta, ItemMeta ingredientMeta) {
         for (NamespacedKey key : sourceMeta.getPersistentDataContainer().getKeys()) {
             if (!ingredientMeta.getPersistentDataContainer().has(key)) {
+                System.out.println("Key " + key + " not found in ingredient meta");
                 return false;
             }
         }
 
-        boolean lore = sourceMeta.hasLore() == ingredientMeta.hasLore() && (sourceMeta.hasLore()
-                && Objects.equals(sourceMeta.getLore(), ingredientMeta.getLore()));
+        boolean lore = sourceMeta.hasLore() == ingredientMeta.hasLore() && (!sourceMeta.hasLore()
+                || Objects.equals(sourceMeta.getLore(), ingredientMeta.getLore()));
 
         boolean customData = sourceMeta.hasCustomModelData() == ingredientMeta.hasCustomModelData()
-                && (sourceMeta.hasCustomModelData()
-                    && sourceMeta.getCustomModelData() == ingredientMeta.getCustomModelData());
+                && (!sourceMeta.hasCustomModelData()
+                    || sourceMeta.getCustomModelData() == ingredientMeta.getCustomModelData());
 
         return lore && customData;
     }

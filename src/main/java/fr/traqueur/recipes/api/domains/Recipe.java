@@ -10,6 +10,8 @@ import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+
 /**
  * Represents a recipe.
  */
@@ -194,5 +196,39 @@ public interface Recipe {
      * @return The recipe.
      */
     ItemRecipe build();
+
+    /**
+     * Create a new item recipe.
+     * @param ingredientList The list of ingredients.
+     * @param type The type of the recipe.
+     * @param pattern The pattern of the recipe.
+     * @param cookingTime The cooking time of the recipe.
+     * @param name The name of the recipe.
+     * @param group The group of the recipe.
+     * @param category The category of the recipe.
+     * @param result The result of the recipe.
+     * @param amount The amount of the result.
+     * @param experience The experience of the recipe.
+     * @return The item recipe.
+     */
+    default ItemRecipe getItemRecipe(List<Ingredient> ingredientList, RecipeType type, String[] pattern, int cookingTime, String name, String group, String category, ItemStack result, int amount, float experience) {
+        if (ingredientList.isEmpty()) {
+            throw new IllegalArgumentException("Ingredients are not set");
+        }
+
+        if (type == RecipeType.CRAFTING_SHAPED && pattern == null) {
+            throw new IllegalArgumentException("Pattern is not set");
+        }
+
+        if (type == RecipeType.CRAFTING_SHAPED && pattern.length == 0) {
+            throw new IllegalArgumentException("Pattern is empty");
+        }
+
+        if(RecipeType.smeltingRecipes().contains(type) && cookingTime == 0) {
+            throw new IllegalArgumentException("Cooking time is not set");
+        }
+
+        return new ItemRecipe(name, group, category, type, result, amount, ingredientList.toArray(new Ingredient[0]), pattern, cookingTime, experience);
+    }
 
 }
