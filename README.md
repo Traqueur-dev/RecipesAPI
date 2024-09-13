@@ -123,5 +123,7 @@ The API is simple and intuitive to use. You can easily:
 - **Set crafting patterns**: For shaped recipes, you can define the crafting grid with `.setPattern()`.
 - **Control output**: Set the resulting item and amount.
 
+You can check javadoc here : [Javadoc](https://javadoc.jitpack.io/com/github/Traqueur-dev/RecipesAPI/1.1.0/javadoc/)
+
 ## License
 This project is licensed under the MIT License.
