@@ -39,12 +39,17 @@ public final class RecipesAPI {
      */
     private final List<ItemRecipe> recipes;
 
+
+    public RecipesAPI(JavaPlugin plugin, boolean debug) {
+        this(plugin, debug, true);
+    }
+
     /**
      * Create a new instance of RecipesAPI
      * @param plugin The plugin instance
      * @param debug If the debug mode is enabled
      */
-    public RecipesAPI(JavaPlugin plugin, boolean debug) {
+    public RecipesAPI(JavaPlugin plugin, boolean debug, boolean enableYmlSupport) {
         this.debug = debug;
         this.plugin = plugin;
         this.recipes = new ArrayList<>();
@@ -54,25 +59,32 @@ public final class RecipesAPI {
         plugin.getServer().getPluginManager().registerEvents(new PrepareCraftListener(this), plugin);
         plugin.getServer().getPluginManager().registerEvents(new RecipesListener(this), plugin);
 
-        var recipeFolder = new File(plugin.getDataFolder(), "recipes");
-        if (!recipeFolder.exists() && !recipeFolder.mkdirs()) {
-            plugin.getLogger().warning("Could not create recipes folder.");
-            return;
+        if(enableYmlSupport) {
+            var recipeFolder = new File(plugin.getDataFolder(), "recipes");
+            if (!recipeFolder.exists() && !recipeFolder.mkdirs()) {
+                plugin.getLogger().warning("Could not create recipes folder.");
+                return;
+            }
+
+            //Permits to use FoliaLib's scheduler if it's present in the plugin
+            try {
+                new FoliaLib(plugin).getScheduler()
+                        .runNextTick((wrappedTask) -> this.addConfiguredRecipes(recipeFolder));
+            } catch (NoClassDefFoundError e) {
+                Bukkit.getScheduler().runTaskLater(plugin,
+                        () -> this.addConfiguredRecipes(recipeFolder), 1);
+            }
         }
 
-        //Permits to use FoliaLib's scheduler if it's present in the plugin
-        try {
-            new FoliaLib(plugin).getScheduler()
-                    .runNextTick((wrappedTask) -> this.addConfiguredRecipes(recipeFolder));
-        } catch (NoClassDefFoundError e) {
-            Bukkit.getScheduler().runTaskLater(plugin,
-                    () -> this.addConfiguredRecipes(recipeFolder), 1);
-        }
         if(this.debug) {
             Updater.update("RecipesAPI");
         }
     }
 
+    /**
+     * Add all the recipes in the recipe folder to the list of recipes
+     * @param recipeFolder The folder containing the recipes
+     */
     private void addConfiguredRecipes(File recipeFolder) {
         try (Stream<Path> stream = Files.walk(recipeFolder.toPath())) {
             stream.skip(1)
@@ -85,6 +97,10 @@ public final class RecipesAPI {
         }
     }
 
+    /**
+     * Load a recipe from a file
+     * @param file The file to load the recipe from
+     */
     private void loadRecipe(File file) {
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
         var recipe = new RecipeConfiguration(file.getName().replace(".yml", ""), configuration).build();
