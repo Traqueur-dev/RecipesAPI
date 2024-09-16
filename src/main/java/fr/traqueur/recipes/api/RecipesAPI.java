@@ -40,6 +40,11 @@ public final class RecipesAPI {
     private final List<ItemRecipe> recipes;
 
 
+    /**
+     * Create a new instance of RecipesAPI with yml support enabled
+     * @param plugin The plugin instance
+     * @param debug If the debug mode is enabled
+     */
     public RecipesAPI(JavaPlugin plugin, boolean debug) {
         this(plugin, debug, true);
     }
@@ -48,6 +53,7 @@ public final class RecipesAPI {
      * Create a new instance of RecipesAPI
      * @param plugin The plugin instance
      * @param debug If the debug mode is enabled
+     * @param enableYmlSupport If the yml support is enabled
      */
     public RecipesAPI(JavaPlugin plugin, boolean debug, boolean enableYmlSupport) {
         this.debug = debug;
