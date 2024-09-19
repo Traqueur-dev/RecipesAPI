@@ -1,10 +1,12 @@
 package fr.traqueur.recipes.api;
 
 import com.tcoded.folialib.FoliaLib;
+import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.PrepareCraftListener;
 import fr.traqueur.recipes.impl.domains.recipes.RecipeConfiguration;
 import fr.traqueur.recipes.impl.RecipesListener;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
+import fr.traqueur.recipes.impl.hook.Hooks;
 import fr.traqueur.recipes.impl.updater.Updater;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -65,25 +67,35 @@ public final class RecipesAPI {
         plugin.getServer().getPluginManager().registerEvents(new PrepareCraftListener(this), plugin);
         plugin.getServer().getPluginManager().registerEvents(new RecipesListener(this), plugin);
 
-        if(enableYmlSupport) {
-            var recipeFolder = new File(plugin.getDataFolder(), "recipes");
-            if (!recipeFolder.exists() && !recipeFolder.mkdirs()) {
-                plugin.getLogger().warning("Could not create recipes folder.");
-                return;
+        this.runNextTick(() -> {
+
+            if(this.debug) {
+                Hook.HOOKS.stream()
+                        .filter(hook -> hook.isEnable(plugin))
+                        .forEach(hook -> this.plugin.getLogger().info("Hook enabled: " + hook.getPluginName()));
             }
 
-            //Permits to use FoliaLib's scheduler if it's present in the plugin
-            try {
-                new FoliaLib(plugin).getScheduler()
-                        .runNextTick((wrappedTask) -> this.addConfiguredRecipes(recipeFolder));
-            } catch (NoClassDefFoundError e) {
-                Bukkit.getScheduler().runTaskLater(plugin,
-                        () -> this.addConfiguredRecipes(recipeFolder), 1);
+            if(enableYmlSupport) {
+                var recipeFolder = new File(plugin.getDataFolder(), "recipes");
+                if (!recipeFolder.exists() && !recipeFolder.mkdirs()) {
+                    plugin.getLogger().warning("Could not create recipes folder.");
+                    return;
+                }
+                this.addConfiguredRecipes(recipeFolder);
             }
-        }
+        });
 
         if(this.debug) {
             Updater.update("RecipesAPI");
+        }
+    }
+
+    private void runNextTick(Runnable runnable) {
+        //Permits to use FoliaLib's scheduler if it's present in the plugin
+        try {
+            new FoliaLib(plugin).getScheduler().runLater(runnable, 1);
+        } catch (NoClassDefFoundError e) {
+            Bukkit.getScheduler().runTaskLater(plugin, runnable, 1);
         }
     }
 
@@ -109,7 +121,8 @@ public final class RecipesAPI {
      */
     private void loadRecipe(File file) {
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
-        var recipe = new RecipeConfiguration(file.getName().replace(".yml", ""), configuration).build();
+        var recipe = new RecipeConfiguration(this.plugin, file.getName().replace(".yml", ""), configuration)
+                .build();
         this.addRecipe(recipe, true);
     }
 
@@ -117,12 +130,14 @@ public final class RecipesAPI {
      * Register all the recipes in the list of recipes to the server
      */
     public void registerRecipes() {
-        for (ItemRecipe recipe : recipes) {
-            plugin.getServer().addRecipe(recipe.toBukkitRecipe());
-        }
-        if(this.debug) {
-            plugin.getLogger().info("Registered " + recipes.size() + " recipes.");
-        }
+       this.runNextTick(() -> {
+           for (ItemRecipe recipe : recipes) {
+               plugin.getServer().addRecipe(recipe.toBukkitRecipe());
+           }
+           if(this.debug) {
+               plugin.getLogger().info("Registered " + recipes.size() + " recipes.");
+           }
+       });
     }
 
     /**
