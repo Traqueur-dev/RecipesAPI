@@ -8,7 +8,12 @@
 - **Create Custom Recipes**: Add shaped, shapeless, and furnace, and other type recipes with ease.
 - **Advanced Recipe Handling**: Support for custom ingredients with meta data (e.g., items with custom names).
 - **Easy Integration**: Simple API to integrate into any Spigot plugin.
+- **Hooks**: Support ItemsAdder, Oraxen items. You can create your own hook with your customs items systems.
 - **Version Compatibility**: Works with recent Spigot versions and allows you to create recipes dynamically. Folia compatibility if you use FoliaLib.
+- **Lightweight**: No need to include large libraries or dependencies.
+- **Open Source**: Available under the MIT License.
+- **Javadoc**: Comprehensive documentation for easy reference.
+
 ## Installation
 
 0. **Prerequisites**: 
@@ -101,9 +106,6 @@ public final class TestPlugin extends JavaPlugin {
         recipesAPI.addRecipe(recipe2);
         recipesAPI.addRecipe(recipe3);
         recipesAPI.addRecipe(recipe4);
-
-        // Register the recipes with the server
-        recipesAPI.registerRecipes();
     }
 }
 ```

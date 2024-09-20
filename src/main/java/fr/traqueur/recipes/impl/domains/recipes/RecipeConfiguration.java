@@ -4,6 +4,7 @@ import fr.traqueur.recipes.api.Base64;
 import fr.traqueur.recipes.api.RecipeType;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.domains.Recipe;
+import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import fr.traqueur.recipes.impl.domains.ingredients.ItemStackIngredient;
 import fr.traqueur.recipes.impl.domains.ingredients.MaterialIngredient;
@@ -13,6 +14,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,10 +77,11 @@ public class RecipeConfiguration implements Recipe {
 
     /**
      * The constructor of the recipe.
+     * @param plugin the plugin of the recipe.
      * @param name the name of the recipe.
      * @param configuration the configuration of the recipe.
      */
-    public RecipeConfiguration(String name, YamlConfiguration configuration) {
+    public RecipeConfiguration(JavaPlugin plugin, String name, YamlConfiguration configuration) {
         this.name = name.replace(".yml", "");
         String strType = configuration.getString("type", "ERROR");
         try {
@@ -118,7 +121,12 @@ public class RecipeConfiguration implements Recipe {
                        }
                        yield new ItemStackIngredient(this.getItemStack(data[1]), sign);
                    }
-                   default -> throw new IllegalStateException("Unexpected value: " + data[0]);
+                   default -> Hook.HOOKS.stream()
+                           .filter(hook -> hook.isEnable(plugin))
+                           .filter(hook -> hook.getPluginName().equalsIgnoreCase(data[0]))
+                           .findFirst()
+                           .orElseThrow(() -> new IllegalArgumentException("The data " + data[0] + " isn't valid."))
+                           .getIngredient(data[1], sign);
                };
                this.ingredientList.add(ingred);
             }

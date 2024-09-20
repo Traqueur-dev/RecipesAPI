@@ -19,11 +19,18 @@ repositories {
         name = "jitpack"
         url = "https://jitpack.io"
     }
+    maven {
+        url "https://repo.oraxen.com/releases"
+    }
 }
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT"
     compileOnly "com.github.technicallycoded:FoliaLib:main-SNAPSHOT"
+
+    // Hooks
+    compileOnly 'io.th0rgal:oraxen:1.181.0'
+    compileOnly 'com.github.LoneDev6:API-ItemsAdder:3.6.1'
 }
 
 tasks.register('generateVersionProperties') {

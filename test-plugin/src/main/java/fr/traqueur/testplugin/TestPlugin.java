@@ -70,8 +70,6 @@ public final class TestPlugin extends JavaPlugin {
         recipesAPI.addRecipe(recipe2);
         recipesAPI.addRecipe(recipe3);
         recipesAPI.addRecipe(recipe4);
-
-        recipesAPI.registerRecipes();
     }
 
     @Override
