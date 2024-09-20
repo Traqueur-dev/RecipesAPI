@@ -8,11 +8,26 @@ import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+/**
+ * This class is an implementation of the BaseIngredient class.
+ * It is used to represent an ingredient that is an item from the Oraxen plugin.
+ */
 public class OraxenIngredient extends BaseIngredient {
 
+    /**
+     * The Material object that represents the item from Oraxen.
+     */
     private final Material material;
+    /**
+     * The id of the item from Oraxen.
+     */
     private final String id;
 
+    /**
+     * Constructor of the class.
+     * @param id The id of the item from Oraxen.
+     * @param sign The sign that represents the ingredient in the recipe.
+     */
     public OraxenIngredient(String id, Character sign) {
         super(sign);
         var builder = OraxenItems.getItemById(id);
@@ -23,11 +38,17 @@ public class OraxenIngredient extends BaseIngredient {
         this.id = id;
     }
 
-
+    /**
+     * Constructor of the class.
+     * @param id The id of the item from Oraxen.
+     */
     public OraxenIngredient(String id) {
         this(id, null);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isSimilar(ItemStack item) {
         if (!item.hasItemMeta() || item.getItemMeta().getPersistentDataContainer().isEmpty()) {
@@ -46,6 +67,9 @@ public class OraxenIngredient extends BaseIngredient {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public RecipeChoice choice() {
         return new RecipeChoice.MaterialChoice(material);

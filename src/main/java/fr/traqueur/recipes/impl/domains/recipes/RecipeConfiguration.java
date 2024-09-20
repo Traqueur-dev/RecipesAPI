@@ -77,6 +77,7 @@ public class RecipeConfiguration implements Recipe {
 
     /**
      * The constructor of the recipe.
+     * @param plugin the plugin of the recipe.
      * @param name the name of the recipe.
      * @param configuration the configuration of the recipe.
      */
