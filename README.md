@@ -126,6 +126,7 @@ The API is simple and intuitive to use. You can easily:
 - **Control output**: Set the resulting item and amount.
 
 You can check javadoc here : [Javadoc](https://jitpack.io/com/github/Traqueur-dev/RecipesAPI/latest/javadoc/)
+You can check the wiki here : [Wiki](https://github.com/Traqueur-dev/RecipesAPI/wiki)
 
 ## License
 This project is licensed under the MIT License.
