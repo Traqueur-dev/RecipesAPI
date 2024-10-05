@@ -8,8 +8,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * This class is used to register tags.
+ */
 public class TagRegistry {
 
+    /**
+     * The map of tags.
+     */
     private static final Map<String, Tag<Material>> tagMap = new HashMap<>();
 
     static {
@@ -27,10 +33,20 @@ public class TagRegistry {
         }
     }
 
+    /**
+     * Register a tag.
+     * @param key the key of the tag.
+     * @param tag the tag.
+     */
     private static void register(String key, Tag<Material> tag) {
         tagMap.put(key, tag);
     }
 
+    /**
+     * Get a tag by its key.
+     * @param key the key of the tag.
+     * @return the tag.
+     */
     public static Optional<Tag<Material>> getTag(String key) {
         return Optional.ofNullable(tagMap.get(key.toUpperCase()));
     }
