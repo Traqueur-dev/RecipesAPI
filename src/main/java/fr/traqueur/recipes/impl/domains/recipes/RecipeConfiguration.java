@@ -2,6 +2,7 @@ package fr.traqueur.recipes.impl.domains.recipes;
 
 import fr.traqueur.recipes.api.Base64;
 import fr.traqueur.recipes.api.RecipeType;
+import fr.traqueur.recipes.api.TagRegistry;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.domains.Recipe;
 import fr.traqueur.recipes.api.hook.Hook;
@@ -9,7 +10,9 @@ import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import fr.traqueur.recipes.impl.domains.ingredients.ItemStackIngredient;
 import fr.traqueur.recipes.impl.domains.ingredients.MaterialIngredient;
 import fr.traqueur.recipes.impl.domains.ingredients.StrictItemStackIngredient;
+import fr.traqueur.recipes.impl.domains.ingredients.TagIngredient;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.recipe.CookingBookCategory;
@@ -114,6 +117,7 @@ public class RecipeConfiguration implements Recipe {
             } else {
                Ingredient ingred = switch (data[0]) {
                    case "material" -> new MaterialIngredient(this.getMaterial(data[1]), sign);
+                   case "tag" -> new TagIngredient(this.getTag(data[1]), sign);
                    case "item" -> {
                        boolean strict = this.isStrict(ingredient);
                        if(strict) {
@@ -143,6 +147,15 @@ public class RecipeConfiguration implements Recipe {
 
         this.cookingTime = configuration.getInt("cooking-time", 0);
         this.experience = (float) configuration.getDouble("experience", 0d);
+    }
+
+    /**
+     * This method is used to get Tag from the string.
+     * @param data the data to get the tag.
+     * @return the tag.
+     */
+    private Tag<Material> getTag(String data) {
+        return TagRegistry.getTag(data).orElseThrow(() -> new IllegalArgumentException("The tag " + data + " isn't valid."));
     }
 
     /**
