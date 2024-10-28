@@ -21,10 +21,6 @@ public final class TestPlugin extends JavaPlugin {
     public void onEnable() {
         recipesAPI = new RecipesAPI(this, true);
 
-        if(!new File(this.getDataFolder(), "recipes/example.yml").exists()) {
-            this.saveResource("recipes/example.yml", false);
-        }
-
         ItemRecipe recipe = new RecipeBuilder()
                 .setType(RecipeType.CRAFTING_SHAPELESS)
                 .setName("example-simple")

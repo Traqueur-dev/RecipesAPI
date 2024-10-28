@@ -1,12 +1,10 @@
 package fr.traqueur.recipes.api;
 
-import com.tcoded.folialib.FoliaLib;
 import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.PrepareCraftListener;
 import fr.traqueur.recipes.impl.domains.recipes.RecipeConfiguration;
 import fr.traqueur.recipes.impl.RecipesListener;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
-import fr.traqueur.recipes.impl.hook.Hooks;
 import fr.traqueur.recipes.impl.updater.Updater;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -41,6 +39,11 @@ public final class RecipesAPI {
      */
     private final List<ItemRecipe> recipes;
 
+    /**
+     * The scheduler
+     */
+    private final com.tcoded.folialib.impl.PlatformScheduler scheduler;
+
 
     /**
      * Create a new instance of RecipesAPI with yml support enabled
@@ -48,7 +51,7 @@ public final class RecipesAPI {
      * @param debug If the debug mode is enabled
      */
     public RecipesAPI(JavaPlugin plugin, boolean debug) {
-        this(plugin, debug, true);
+        this(plugin, debug, true, null);
     }
 
     /**
@@ -57,10 +60,11 @@ public final class RecipesAPI {
      * @param debug If the debug mode is enabled
      * @param enableYmlSupport If the yml support is enabled
      */
-    public RecipesAPI(JavaPlugin plugin, boolean debug, boolean enableYmlSupport) {
+    public RecipesAPI(JavaPlugin plugin, boolean debug, boolean enableYmlSupport, com.tcoded.folialib.impl.PlatformScheduler scheduler) {
         this.debug = debug;
         this.plugin = plugin;
         this.recipes = new ArrayList<>();
+        this.scheduler = scheduler;
 
         RecipeType.registerPlugin(plugin);
 
@@ -76,7 +80,7 @@ public final class RecipesAPI {
             }
 
             if(enableYmlSupport) {
-                var recipeFolder = new File(plugin.getDataFolder(), "recipes");
+                var recipeFolder = new File(plugin.getDataFolder(), "recipes/");
                 if (!recipeFolder.exists() && !recipeFolder.mkdirs()) {
                     plugin.getLogger().warning("Could not create recipes folder.");
                     return;
@@ -99,7 +103,9 @@ public final class RecipesAPI {
     private void runNextTick(Runnable runnable) {
         //Permits to use FoliaLib's scheduler if it's present in the plugin
         try {
-            new FoliaLib(plugin).getScheduler().runLater(runnable, 1);
+            if(scheduler != null) {
+                this.scheduler.runNextTick((t) -> runnable.run());
+            }
         } catch (NoClassDefFoundError e) {
             Bukkit.getScheduler().runTaskLater(plugin, runnable, 1);
         }
@@ -126,6 +132,9 @@ public final class RecipesAPI {
      * @param file The file to load the recipe from
      */
     private void loadRecipe(File file) {
+        if(!new File(this.plugin.getDataFolder(), "recipes/" + file.getName()).exists()) {
+            this.plugin.saveResource("recipes/" + file.getName(), false);
+        }
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
         var recipe = new RecipeConfiguration(this.plugin, file.getName().replace(".yml", ""), configuration)
                 .build();
