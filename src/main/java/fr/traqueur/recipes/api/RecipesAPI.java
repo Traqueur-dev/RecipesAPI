@@ -142,7 +142,7 @@ public final class RecipesAPI {
      */
     public void unregisterRecipes() {
         for (ItemRecipe recipe : recipes) {
-            plugin.getServer().removeRecipe(recipe.getKey());
+            this.removeRecipe(recipe);
         }
     }
 
@@ -165,6 +165,9 @@ public final class RecipesAPI {
     public void removeRecipe(ItemRecipe recipe) {
         plugin.getServer().removeRecipe(recipe.getKey());
         this.recipes.remove(recipe);
+        if(this.debug) {
+            plugin.getLogger().info("Unregistering recipe: " + recipe.getKey());
+        }
     }
 
     /**
