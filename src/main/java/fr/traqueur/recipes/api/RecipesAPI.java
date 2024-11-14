@@ -87,8 +87,6 @@ public final class RecipesAPI {
                 }
                 this.addConfiguredRecipes(recipeFolder);
             }
-
-            this.registerRecipes();
         });
 
         if(this.debug) {
@@ -140,21 +138,6 @@ public final class RecipesAPI {
     }
 
     /**
-     * Register all the recipes in the list of recipes to the server
-     */
-    private void registerRecipes() {
-        for (ItemRecipe recipe : recipes) {
-            if(this.debug) {
-                plugin.getLogger().info("Registering recipe: " + recipe.getKey());
-            }
-            plugin.getServer().addRecipe(recipe.toBukkitRecipe());
-        }
-        if(this.debug) {
-            plugin.getLogger().info("Registered " + recipes.size() + " recipes.");
-        }
-    }
-
-    /**
      * Unregister all the recipes in the list of recipes from the server
      */
     public void unregisterRecipes() {
@@ -168,21 +151,10 @@ public final class RecipesAPI {
      * @param recipe The recipe to add
      */
     public void addRecipe(ItemRecipe recipe) {
-        this.addRecipe(recipe, false);
-    }
-
-    /**
-     * Add a recipe to the list of recipes
-     * @param recipe The recipe to add
-     * @param register If the recipe should be registered
-     */
-    public void addRecipe(ItemRecipe recipe, boolean register) {
         this.recipes.add(recipe);
-        if(register) {
-            if(this.debug) {
-                plugin.getLogger().info("Registering recipe: " + recipe.getKey());
-            }
-            plugin.getServer().addRecipe(recipe.toBukkitRecipe());
+        plugin.getServer().addRecipe(recipe.toBukkitRecipe());
+        if(this.debug) {
+            plugin.getLogger().info("Registering recipe: " + recipe.getKey());
         }
     }
 
