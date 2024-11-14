@@ -67,9 +67,4 @@ public final class TestPlugin extends JavaPlugin {
         recipesAPI.addRecipe(recipe3);
         recipesAPI.addRecipe(recipe4);
     }
-
-    @Override
-    public void onDisable() {
-       recipesAPI.unregisterRecipes();
-    }
 }

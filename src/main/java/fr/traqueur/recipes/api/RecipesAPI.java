@@ -87,8 +87,6 @@ public final class RecipesAPI {
                 }
                 this.addConfiguredRecipes(recipeFolder);
             }
-
-            this.registerRecipes();
         });
 
         if(this.debug) {
@@ -102,11 +100,9 @@ public final class RecipesAPI {
      */
     private void runNextTick(Runnable runnable) {
         //Permits to use FoliaLib's scheduler if it's present in the plugin
-        try {
-            if(scheduler != null) {
-                this.scheduler.runNextTick((t) -> runnable.run());
-            }
-        } catch (NoClassDefFoundError e) {
+        if(scheduler != null) {
+            this.scheduler.runNextTick((t) -> runnable.run());
+        } else {
             Bukkit.getScheduler().runTaskLater(plugin, runnable, 1);
         }
     }
@@ -142,23 +138,11 @@ public final class RecipesAPI {
     }
 
     /**
-     * Register all the recipes in the list of recipes to the server
-     */
-    private void registerRecipes() {
-        for (ItemRecipe recipe : recipes) {
-            plugin.getServer().addRecipe(recipe.toBukkitRecipe());
-        }
-        if(this.debug) {
-            plugin.getLogger().info("Registered " + recipes.size() + " recipes.");
-        }
-    }
-
-    /**
      * Unregister all the recipes in the list of recipes from the server
      */
     public void unregisterRecipes() {
         for (ItemRecipe recipe : recipes) {
-            plugin.getServer().removeRecipe(recipe.getKey());
+            this.removeRecipe(recipe);
         }
     }
 
@@ -167,10 +151,11 @@ public final class RecipesAPI {
      * @param recipe The recipe to add
      */
     public void addRecipe(ItemRecipe recipe) {
-        if(this.debug) {
-            plugin.getLogger().info("Adding recipe: " + recipe.getKey());
-        }
         this.recipes.add(recipe);
+        plugin.getServer().addRecipe(recipe.toBukkitRecipe());
+        if(this.debug) {
+            plugin.getLogger().info("Registering recipe: " + recipe.getKey());
+        }
     }
 
     /**
@@ -180,6 +165,9 @@ public final class RecipesAPI {
     public void removeRecipe(ItemRecipe recipe) {
         plugin.getServer().removeRecipe(recipe.getKey());
         this.recipes.remove(recipe);
+        if(this.debug) {
+            plugin.getLogger().info("Unregistering recipe: " + recipe.getKey());
+        }
     }
 
     /**
