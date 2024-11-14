@@ -102,11 +102,9 @@ public final class RecipesAPI {
      */
     private void runNextTick(Runnable runnable) {
         //Permits to use FoliaLib's scheduler if it's present in the plugin
-        try {
-            if(scheduler != null) {
-                this.scheduler.runNextTick((t) -> runnable.run());
-            }
-        } catch (NoClassDefFoundError e) {
+        if(scheduler != null) {
+            this.scheduler.runNextTick((t) -> runnable.run());
+        } else {
             Bukkit.getScheduler().runTaskLater(plugin, runnable, 1);
         }
     }
@@ -146,6 +144,9 @@ public final class RecipesAPI {
      */
     private void registerRecipes() {
         for (ItemRecipe recipe : recipes) {
+            if(this.debug) {
+                plugin.getLogger().info("Registering recipe: " + recipe.getKey());
+            }
             plugin.getServer().addRecipe(recipe.toBukkitRecipe());
         }
         if(this.debug) {
@@ -167,10 +168,22 @@ public final class RecipesAPI {
      * @param recipe The recipe to add
      */
     public void addRecipe(ItemRecipe recipe) {
-        if(this.debug) {
-            plugin.getLogger().info("Adding recipe: " + recipe.getKey());
-        }
+        this.addRecipe(recipe, false);
+    }
+
+    /**
+     * Add a recipe to the list of recipes
+     * @param recipe The recipe to add
+     * @param register If the recipe should be registered
+     */
+    public void addRecipe(ItemRecipe recipe, boolean register) {
         this.recipes.add(recipe);
+        if(register) {
+            if(this.debug) {
+                plugin.getLogger().info("Registering recipe: " + recipe.getKey());
+            }
+            plugin.getServer().addRecipe(recipe.toBukkitRecipe());
+        }
     }
 
     /**
