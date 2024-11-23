@@ -29,7 +29,9 @@ public class RecipesListener implements Listener {
      */
     @EventHandler
     public void onDisable(PluginDisableEvent event) {
-        this.api.unregisterRecipes();
+        if (event.getPlugin().getName().equals(this.api.getPlugin().getName())) {
+            this.api.unregisterRecipes();
+        }
     }
 
 }
