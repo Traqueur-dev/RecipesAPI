@@ -85,28 +85,42 @@ public class RecipeConfiguration implements Recipe {
      * @param configuration the configuration of the recipe.
      */
     public RecipeConfiguration(JavaPlugin plugin, String name, YamlConfiguration configuration) {
+        this(plugin, name, "", configuration);
+    }
+
+    /**
+     * The constructor of the recipe.
+     * @param plugin the plugin of the recipe.
+     * @param name the name of the recipe.
+     * @param path the path of the recipe.
+     * @param configuration the configuration of the recipe.
+     */
+    public RecipeConfiguration(JavaPlugin plugin, String name, String path, YamlConfiguration configuration) {
         this.name = name.replace(".yml", "");
-        String strType = configuration.getString("type", "ERROR");
+        if(!path.endsWith(".") && !path.isEmpty()) {
+            path += ".";
+        }
+        String strType = configuration.getString(path + "type", "ERROR");
         try {
             this.type = RecipeType.valueOf(strType.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("The type " + strType + " isn't valid.");
         }
-        this.category = configuration.getString("category", "");
-        this.group = configuration.getString("group", "");
+        this.category = configuration.getString(path + "category", "");
+        this.group = configuration.getString(path + "group", "");
         if(!this.checkGategory(this.category)) {
             throw new IllegalArgumentException("The category " + this.category + " isn't valid.");
         }
 
-        if(configuration.contains("pattern")) {
+        if(configuration.contains(path + "pattern")) {
             this.pattern = configuration.getStringList("pattern").toArray(new String[0]);
         }
 
-        if(!configuration.contains("ingredients")) {
+        if(!configuration.contains(path + "ingredients")) {
             throw new IllegalArgumentException("The recipe " + name + " doesn't have ingredients.");
         }
 
-        for(Map<?,?> ingredient : configuration.getMapList("ingredients")) {
+        for(Map<?,?> ingredient : configuration.getMapList(path + "ingredients")) {
             String material = (String) ingredient.get("item");
             var objSign = ingredient.getOrDefault("sign", null);
             Character sign = objSign == null ? null : objSign.toString().charAt(0);
@@ -137,16 +151,30 @@ public class RecipeConfiguration implements Recipe {
 
         }
 
-        if(!configuration.contains("result.item")) {
+        if(!configuration.contains(path + "result.item")) {
             throw new IllegalArgumentException("The recipe " + name + " doesn't have a result.");
         }
-        String base64itemstack = configuration.getString("result.item");
-        this.result = this.getItemStack(base64itemstack);
-        this.amount = configuration.getInt("result.amount", 1);
+        String strItem = configuration.getString(path + "result.item");
+        String[] resultParts = strItem.split(":");
+        if(resultParts.length == 1) {
+            this.result = this.getItemStack(resultParts[0]);
+        } else {
+            this.result = switch (resultParts[0]) {
+                case "material" -> new ItemStack(this.getMaterial(resultParts[1]));
+                case "item", "base64" -> this.getItemStack(resultParts[1]);
+                default -> Hook.HOOKS.stream()
+                        .filter(hook -> hook.isEnable(plugin))
+                        .filter(hook -> hook.getPluginName().equalsIgnoreCase(resultParts[0]))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("The result " + strItem + " isn't valid."))
+                        .getItemStack(resultParts[1]);
+            };
+        }
+        this.amount = configuration.getInt(path + "result.amount", 1);
 
 
-        this.cookingTime = configuration.getInt("cooking-time", 0);
-        this.experience = (float) configuration.getDouble("experience", 0d);
+        this.cookingTime = configuration.getInt(path + "cooking-time", 0);
+        this.experience = (float) configuration.getDouble(path + "experience", 0d);
     }
 
     /**

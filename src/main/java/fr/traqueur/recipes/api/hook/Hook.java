@@ -2,6 +2,7 @@ package fr.traqueur.recipes.api.hook;
 
 import fr.traqueur.recipes.api.domains.BaseIngredient;
 import fr.traqueur.recipes.impl.hook.Hooks;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -48,4 +49,5 @@ public interface Hook {
         return plugin.getServer().getPluginManager().isPluginEnabled(getPluginName());
     }
 
+    ItemStack getItemStack(String resultPart);
 }
