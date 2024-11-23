@@ -175,7 +175,7 @@ public class PrepareCraftListener implements Listener {
             int row = i / 3;
             int column = i % 3;
             String[] pattern = itemRecipe.pattern();
-            char sign = pattern[row].split("")[column].toCharArray()[0];
+            char sign = pattern[row].replace(" ", "\u0001").split("")[column].toCharArray()[0];
             Arrays.stream(itemRecipe.ingredients()).filter(ingredient -> ingredient.sign() == sign).findFirst().ifPresent(ingredient -> {
                 isSimilar.set(ingredient.isSimilar(stack));
             });
