@@ -113,7 +113,7 @@ public class RecipeConfiguration implements Recipe {
         }
 
         if(configuration.contains(path + "pattern")) {
-            this.pattern = configuration.getStringList("pattern").toArray(new String[0]);
+            this.pattern = configuration.getStringList(path+"pattern").toArray(new String[0]);
         }
 
         if(!configuration.contains(path + "ingredients")) {
