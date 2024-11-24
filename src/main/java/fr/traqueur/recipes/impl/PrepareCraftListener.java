@@ -169,13 +169,12 @@ public class PrepareCraftListener implements Listener {
     private void checkGoodShapedRecipe(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
         AtomicBoolean isSimilar = new AtomicBoolean(true);
         ItemStack[] matrix = event.getInventory().getMatrix();
+        matrix = Arrays.stream(matrix).filter(stack -> stack != null && stack.getType() != Material.AIR).toArray(ItemStack[]::new);
+        String[] pattern = Arrays.stream(itemRecipe.pattern()).map(s -> s.split("")).flatMap(Arrays::stream).toArray(String[]::new);
+
         for (int i = 0; i < matrix.length; i++) {
             ItemStack stack = matrix[i];
-            if (stack == null || stack.getType() == Material.AIR) continue;
-            int row = i / 3;
-            int column = i % 3;
-            String[] pattern = itemRecipe.pattern();
-            char sign = pattern[row].replace(" ", "\u0001").split("")[column].toCharArray()[0];
+            char sign = pattern[i].charAt(0);
             Arrays.stream(itemRecipe.ingredients()).filter(ingredient -> ingredient.sign() == sign).findFirst().ifPresent(ingredient -> {
                 isSimilar.set(ingredient.isSimilar(stack));
             });
