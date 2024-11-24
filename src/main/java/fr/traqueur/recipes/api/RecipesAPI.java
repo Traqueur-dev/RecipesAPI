@@ -3,7 +3,6 @@ package fr.traqueur.recipes.api;
 import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.PrepareCraftListener;
 import fr.traqueur.recipes.impl.domains.recipes.RecipeConfiguration;
-import fr.traqueur.recipes.impl.RecipesListener;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import fr.traqueur.recipes.impl.updater.Updater;
 import org.bukkit.Bukkit;
@@ -69,8 +68,7 @@ public final class RecipesAPI {
         RecipeType.registerPlugin(plugin);
 
         plugin.getServer().getPluginManager().registerEvents(new PrepareCraftListener(this), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new RecipesListener(this), plugin);
-
+        this.unregisterRecipes();
         this.runNextTick(() -> {
 
             if(this.debug) {
