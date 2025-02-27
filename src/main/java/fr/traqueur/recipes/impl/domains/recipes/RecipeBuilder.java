@@ -1,8 +1,8 @@
 package fr.traqueur.recipes.impl.domains.recipes;
 
+import fr.traqueur.recipes.api.RecipeType;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.domains.Recipe;
-import fr.traqueur.recipes.api.RecipeType;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import org.bukkit.inventory.ItemStack;
 

@@ -1,6 +1,6 @@
 package fr.traqueur.recipes.impl.domains.ingredients;
 
-import fr.traqueur.recipes.api.domains.BaseIngredient;
+import fr.traqueur.recipes.api.domains.Ingredient;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * This class represents an ingredient that is an item stack
  */
-public class ItemStackIngredient extends BaseIngredient {
+public class ItemStackIngredient extends Ingredient {
 
     /**
      * The item of the ingredient

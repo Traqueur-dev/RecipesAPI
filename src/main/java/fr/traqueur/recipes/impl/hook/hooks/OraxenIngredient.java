@@ -1,6 +1,6 @@
 package fr.traqueur.recipes.impl.hook.hooks;
 
-import fr.traqueur.recipes.api.domains.BaseIngredient;
+import fr.traqueur.recipes.api.domains.Ingredient;
 import io.th0rgal.oraxen.api.OraxenItems;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -12,7 +12,7 @@ import org.bukkit.persistence.PersistentDataType;
  * This class is an implementation of the BaseIngredient class.
  * It is used to represent an ingredient that is an item from the Oraxen plugin.
  */
-public class OraxenIngredient extends BaseIngredient {
+public class OraxenIngredient extends Ingredient {
 
     /**
      * The Material object that represents the item from Oraxen.

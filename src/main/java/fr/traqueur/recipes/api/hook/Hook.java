@@ -1,6 +1,6 @@
 package fr.traqueur.recipes.api.hook;
 
-import fr.traqueur.recipes.api.domains.BaseIngredient;
+import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.impl.hook.Hooks;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -38,7 +38,7 @@ public interface Hook {
      * @param sign The sign of the ingredient
      * @return The ingredient
      */
-    BaseIngredient getIngredient(String data, Character sign);
+    Ingredient getIngredient(String data, Character sign);
 
     /**
      * Check if the plugin is enabled
@@ -46,7 +46,7 @@ public interface Hook {
      * @return If the plugin is enabled
      */
     default boolean isEnable(JavaPlugin plugin) {
-        return plugin.getServer().getPluginManager().isPluginEnabled(getPluginName());
+        return plugin.getServer().getPluginManager().getPlugin(getPluginName()) != null;
     }
 
     ItemStack getItemStack(String resultPart);
