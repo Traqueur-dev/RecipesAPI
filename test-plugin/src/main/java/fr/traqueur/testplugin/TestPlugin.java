@@ -2,16 +2,12 @@ package fr.traqueur.testplugin;
 
 import fr.traqueur.recipes.api.RecipeType;
 import fr.traqueur.recipes.api.RecipesAPI;
-import fr.traqueur.recipes.impl.domains.recipes.RecipeBuilder;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
-import org.bukkit.Bukkit;
+import fr.traqueur.recipes.impl.domains.recipes.RecipeBuilder;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
 
 public final class TestPlugin extends JavaPlugin {
 
@@ -66,5 +62,10 @@ public final class TestPlugin extends JavaPlugin {
         recipesAPI.addRecipe(recipe2);
         recipesAPI.addRecipe(recipe3);
         recipesAPI.addRecipe(recipe4);
+    }
+
+    @Override
+    public void onDisable() {
+        recipesAPI.unregisterRecipes();
     }
 }

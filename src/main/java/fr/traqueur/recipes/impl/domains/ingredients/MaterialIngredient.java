@@ -1,6 +1,6 @@
 package fr.traqueur.recipes.impl.domains.ingredients;
 
-import fr.traqueur.recipes.api.domains.BaseIngredient;
+import fr.traqueur.recipes.api.domains.Ingredient;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
@@ -8,7 +8,7 @@ import org.bukkit.inventory.RecipeChoice;
 /**
  * A material ingredient
  */
-public class MaterialIngredient extends BaseIngredient {
+public class MaterialIngredient extends Ingredient {
 
     /**
      * The material of the ingredient

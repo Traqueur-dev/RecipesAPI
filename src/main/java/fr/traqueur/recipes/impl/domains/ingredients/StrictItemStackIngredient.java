@@ -1,12 +1,7 @@
 package fr.traqueur.recipes.impl.domains.ingredients;
 
-import fr.traqueur.recipes.api.domains.BaseIngredient;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.Objects;
 
 /**
  * This class represents an ingredient that is an item stack with strict comparison

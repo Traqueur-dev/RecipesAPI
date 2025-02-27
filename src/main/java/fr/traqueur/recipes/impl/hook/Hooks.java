@@ -1,7 +1,7 @@
 package fr.traqueur.recipes.impl.hook;
 
 import dev.lone.itemsadder.api.CustomStack;
-import fr.traqueur.recipes.api.domains.BaseIngredient;
+import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.hook.hooks.ItemsAdderIngredient;
 import fr.traqueur.recipes.impl.hook.hooks.OraxenIngredient;
@@ -17,7 +17,7 @@ public enum Hooks implements Hook {
      */
     ITEMSADDER {
         @Override
-        public BaseIngredient getIngredient(String data, Character sign) {
+        public Ingredient getIngredient(String data, Character sign) {
             return new ItemsAdderIngredient(data, sign);
         }
 
@@ -34,7 +34,7 @@ public enum Hooks implements Hook {
      */
     ORAXEN {
         @Override
-        public BaseIngredient getIngredient(String data, Character sign) {
+        public Ingredient getIngredient(String data, Character sign) {
             return new OraxenIngredient(data, sign);
         }
 
@@ -50,30 +50,10 @@ public enum Hooks implements Hook {
     ;
 
     /**
-     * The name of the hook.
-     */
-    private final String name;
-
-    /**
-     * Constructor.
-     * @param name The name of the hook.
-     */
-    Hooks(String name) {
-        this.name = name;
-    }
-
-    /**
-     * Default constructor.
-     */
-    Hooks() {
-        this.name = this.name().toLowerCase();
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
     public String getPluginName() {
-        return this.name;
+        return this.name().toLowerCase();
     }
 }

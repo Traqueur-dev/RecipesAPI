@@ -11,7 +11,7 @@ group: example
 # BUILDING, REDSTONE, EQUIPMENT, MISC for crafting recipes
 category: MISC
 pattern:
-  - "##"
+  - "###"
   - "##"
 result:
   item: "material:diamond"

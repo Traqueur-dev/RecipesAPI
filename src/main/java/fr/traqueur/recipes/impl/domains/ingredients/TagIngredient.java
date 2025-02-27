@@ -1,6 +1,6 @@
 package fr.traqueur.recipes.impl.domains.ingredients;
 
-import fr.traqueur.recipes.api.domains.BaseIngredient;
+import fr.traqueur.recipes.api.domains.Ingredient;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
@@ -9,7 +9,7 @@ import org.bukkit.inventory.RecipeChoice;
 /**
  * This class represents an ingredient that is a tag
  */
-public class TagIngredient extends BaseIngredient {
+public class TagIngredient extends Ingredient {
 
     /**
      * The tag of the ingredient

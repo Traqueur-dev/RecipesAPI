@@ -1,7 +1,7 @@
 package fr.traqueur.recipes.impl.hook.hooks;
 
 import dev.lone.itemsadder.api.CustomStack;
-import fr.traqueur.recipes.api.domains.BaseIngredient;
+import fr.traqueur.recipes.api.domains.Ingredient;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 
@@ -9,7 +9,7 @@ import org.bukkit.inventory.RecipeChoice;
  * This class is an implementation of the BaseIngredient class.
  * It is used to represent an ingredient that is an item from the ItemsAdder plugin.
  */
-public class ItemsAdderIngredient extends BaseIngredient {
+public class ItemsAdderIngredient extends Ingredient {
 
     /**
      * The CustomStack object that represents the item from ItemsAdder.

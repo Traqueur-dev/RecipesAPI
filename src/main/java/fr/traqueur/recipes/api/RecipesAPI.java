@@ -2,19 +2,22 @@ package fr.traqueur.recipes.api;
 
 import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.PrepareCraftListener;
-import fr.traqueur.recipes.impl.domains.recipes.RecipeConfiguration;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
+import fr.traqueur.recipes.impl.domains.recipes.RecipeConfiguration;
 import fr.traqueur.recipes.impl.updater.Updater;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.stream.Stream;
 
 /**
@@ -39,18 +42,12 @@ public final class RecipesAPI {
     private final List<ItemRecipe> recipes;
 
     /**
-     * The scheduler
-     */
-    private final com.tcoded.folialib.impl.PlatformScheduler scheduler;
-
-
-    /**
      * Create a new instance of RecipesAPI with yml support enabled
      * @param plugin The plugin instance
      * @param debug If the debug mode is enabled
      */
     public RecipesAPI(JavaPlugin plugin, boolean debug) {
-        this(plugin, debug, true, null);
+        this(plugin, debug, true);
     }
 
     /**
@@ -59,49 +56,57 @@ public final class RecipesAPI {
      * @param debug If the debug mode is enabled
      * @param enableYmlSupport If the yml support is enabled
      */
-    public RecipesAPI(JavaPlugin plugin, boolean debug, boolean enableYmlSupport, com.tcoded.folialib.impl.PlatformScheduler scheduler) {
+    public RecipesAPI(JavaPlugin plugin, boolean debug, boolean enableYmlSupport) {
         this.debug = debug;
         this.plugin = plugin;
         this.recipes = new ArrayList<>();
-        this.scheduler = scheduler;
 
         RecipeType.registerPlugin(plugin);
 
         plugin.getServer().getPluginManager().registerEvents(new PrepareCraftListener(this), plugin);
-        this.unregisterRecipes();
-        this.runNextTick(() -> {
 
-            if(this.debug) {
-                Hook.HOOKS.stream()
-                        .filter(hook -> hook.isEnable(plugin))
-                        .forEach(hook -> this.plugin.getLogger().info("Hook enabled: " + hook.getPluginName()));
+        if(enableYmlSupport) {
+            var recipeFolder = new File(plugin.getDataFolder(), "recipes/");
+            if (!recipeFolder.exists() && !recipeFolder.mkdirs()) {
+                plugin.getLogger().warning("Could not create recipes folder.");
+                return;
             }
-
-            if(enableYmlSupport) {
-                var recipeFolder = new File(plugin.getDataFolder(), "recipes/");
-                if (!recipeFolder.exists() && !recipeFolder.mkdirs()) {
-                    plugin.getLogger().warning("Could not create recipes folder.");
-                    return;
-                }
-                this.addConfiguredRecipes(recipeFolder);
-            }
-        });
+            this.loadDefaultRecipes();
+            this.addConfiguredRecipes(recipeFolder);
+        }
 
         if(this.debug) {
+            Hook.HOOKS.stream()
+                    .filter(hook -> hook.isEnable(plugin))
+                    .forEach(hook -> this.plugin.getLogger().info("Hook enabled: " + hook.getPluginName()));
+
             Updater.update("RecipesAPI");
         }
     }
 
     /**
-     * Run a task on the next tick
-     * @param runnable The task to run
+     * Load the default recipes from the jar
      */
-    private void runNextTick(Runnable runnable) {
-        //Permits to use FoliaLib's scheduler if it's present in the plugin
-        if(scheduler != null) {
-            this.scheduler.runNextTick((t) -> runnable.run());
-        } else {
-            Bukkit.getScheduler().runTaskLater(plugin, runnable, 1);
+    private void loadDefaultRecipes() {
+        try {
+            CodeSource src = getClass().getProtectionDomain().getCodeSource();
+            if (src != null) {
+                URL jar = src.getLocation();
+                try (JarInputStream jarStream = new JarInputStream(jar.openStream())) {
+                    JarEntry entry;
+                    while ((entry = jarStream.getNextJarEntry()) != null) {
+                        if (entry.getName().startsWith("recipes/") && entry.getName().endsWith(".yml")) {
+                            File outFile = new File(plugin.getDataFolder(), entry.getName());
+                            if (!outFile.exists()) {
+                                plugin.saveResource(entry.getName(), false);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            plugin.getLogger().warning("Could not load default recipes.");
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
         }
     }
 
@@ -110,6 +115,7 @@ public final class RecipesAPI {
      * @param recipeFolder The folder containing the recipes
      */
     private void addConfiguredRecipes(File recipeFolder) {
+
         try (Stream<Path> stream = Files.walk(recipeFolder.toPath())) {
             stream.skip(1)
                     .map(Path::toFile)
@@ -117,7 +123,8 @@ public final class RecipesAPI {
                     .filter(e -> e.getName().endsWith(".yml"))
                     .forEach(this::loadRecipe);
         } catch (IOException exception) {
-            exception.printStackTrace();
+            plugin.getLogger().warning("Could not load recipes.");
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
         }
     }
 
@@ -126,9 +133,6 @@ public final class RecipesAPI {
      * @param file The file to load the recipe from
      */
     private void loadRecipe(File file) {
-        if(!new File(this.plugin.getDataFolder(), "recipes/" + file.getName()).exists()) {
-            this.plugin.saveResource("recipes/" + file.getName(), false);
-        }
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
         var recipe = new RecipeConfiguration(this.plugin, file.getName().replace(".yml", ""), configuration)
                 .build();
@@ -140,8 +144,9 @@ public final class RecipesAPI {
      */
     public void unregisterRecipes() {
         for (ItemRecipe recipe : recipes) {
-            this.removeRecipe(recipe);
+            plugin.getServer().removeRecipe(recipe.getKey());
         }
+        recipes.clear();
     }
 
     /**
@@ -149,8 +154,13 @@ public final class RecipesAPI {
      * @param recipe The recipe to add
      */
     public void addRecipe(ItemRecipe recipe) {
+        if (recipes.stream().anyMatch(r -> r.getKey().equals(recipe.getKey()))) {
+            throw new IllegalArgumentException("Recipe already registered");
+        }
         this.recipes.add(recipe);
-        plugin.getServer().addRecipe(recipe.toBukkitRecipe());
+        if(plugin.getServer().getRecipe(recipe.getKey()) == null) {
+            plugin.getServer().addRecipe(recipe.toBukkitRecipe());
+        }
         if(this.debug) {
             plugin.getLogger().info("Registering recipe: " + recipe.getKey());
         }

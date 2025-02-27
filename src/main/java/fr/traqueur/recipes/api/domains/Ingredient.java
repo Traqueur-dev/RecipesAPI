@@ -4,27 +4,42 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 
 /**
- * Represents an ingredient.
+ * Base class for ingredients.
  */
-public interface Ingredient {
+public abstract class Ingredient {
+
+    /**
+     * The sign of the ingredient.
+     */
+    private final Character sign;
+
+    /**
+     * Constructor.
+     * @param sign The sign of the ingredient.
+     */
+    public Ingredient(Character sign) {
+        this.sign = sign;
+    }
+
+    /**
+     * Get the sign of the ingredient.
+     * @return The sign of the ingredient.
+     */
+    public Character sign() {
+        return this.sign;
+    }
+
 
     /**
      * Check if the item is similar to the ingredient.
      * @param item The item to check.
      * @return true if the item is similar to the ingredient, false otherwise.
      */
-    boolean isSimilar(ItemStack item);
+    public abstract boolean isSimilar(ItemStack item);
 
     /**
      * Get the choice of the ingredient.
      * @return The choice of the ingredient.
      */
-    RecipeChoice choice();
-
-    /**
-     * Get the sign of the ingredient.
-     * @return The sign of the ingredient.
-     */
-    Character sign();
-
+    public abstract RecipeChoice choice();
 }
