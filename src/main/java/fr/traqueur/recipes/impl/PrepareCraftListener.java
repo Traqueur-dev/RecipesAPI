@@ -193,7 +193,7 @@ public class PrepareCraftListener implements Listener {
      * @param event the event
      */
     private void checkGoodShapelessRecipe(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
-        List<ItemStack> matrix = Arrays.stream(event.getInventory().getMatrix()).filter(Objects::nonNull).toList();
+        List<ItemStack> matrix = Arrays.stream(event.getInventory().getMatrix()).filter(Objects::nonNull).filter(it -> it.getType() != Material.AIR).toList();
         Ingredient[] itemIngredients = itemRecipe.ingredients();
 
         AtomicBoolean isSimilar = new AtomicBoolean(true);
