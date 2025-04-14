@@ -23,10 +23,10 @@ public class ItemsAdderIngredient extends Ingredient {
      */
     public ItemsAdderIngredient(String data, Character sign) {
         super(sign);
-        if(!CustomStack.isInRegistry(data)) {
+        this.customStack = CustomStack.getInstance(data);
+        if(this.customStack == null) {
             throw new IllegalArgumentException("The item " + data + " is not registered in ItemsAdder.");
         }
-        this.customStack = CustomStack.getInstance(data);
     }
 
     /**
