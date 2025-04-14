@@ -23,10 +23,10 @@ public class ItemsAdderIngredient extends Ingredient {
      */
     public ItemsAdderIngredient(String data, Character sign) {
         super(sign);
-        if(!CustomStack.isInRegistry(data)) {
+        this.customStack = CustomStack.getInstance(data);
+        if(this.customStack == null) {
             throw new IllegalArgumentException("The item " + data + " is not registered in ItemsAdder.");
         }
-        this.customStack = CustomStack.getInstance(data);
     }
 
     /**
@@ -42,7 +42,10 @@ public class ItemsAdderIngredient extends Ingredient {
      */
     @Override
     public boolean isSimilar(ItemStack ingredient) {
-        return this.customStack.getItemStack().isSimilar(ingredient);
+        CustomStack item = CustomStack.byItemStack(ingredient);
+        if (item == null) return false;
+        if (!item.getNamespacedID().equals(this.customStack.getNamespacedID())) return false;
+        return true;
     }
 
     /**
@@ -53,4 +56,8 @@ public class ItemsAdderIngredient extends Ingredient {
         return new RecipeChoice.MaterialChoice(this.customStack.getItemStack().getType());
     }
 
+    @Override
+    public String toString() {
+        return this.customStack.getNamespacedID();
+    }
 }
