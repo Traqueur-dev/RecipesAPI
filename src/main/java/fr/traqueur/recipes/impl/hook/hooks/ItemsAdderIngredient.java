@@ -42,7 +42,10 @@ public class ItemsAdderIngredient extends Ingredient {
      */
     @Override
     public boolean isSimilar(ItemStack ingredient) {
-        return this.customStack.getItemStack().isSimilar(ingredient);
+        CustomStack item = CustomStack.byItemStack(ingredient);
+        if (item == null) return false;
+        if (!item.getNamespacedID().equals(this.customStack.getNamespacedID())) return false;
+        return true;
     }
 
     /**
@@ -53,4 +56,8 @@ public class ItemsAdderIngredient extends Ingredient {
         return new RecipeChoice.MaterialChoice(this.customStack.getItemStack().getType());
     }
 
+    @Override
+    public String toString() {
+        return this.customStack.getNamespacedID();
+    }
 }
