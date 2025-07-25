@@ -23,10 +23,11 @@ public enum Hooks implements Hook {
 
         @Override
         public ItemStack getItemStack(String data) {
-            if(!CustomStack.isInRegistry(data)) {
-                throw new IllegalArgumentException("The item " + data + " is not registered in ItemsAdder.");
+            CustomStack stack = CustomStack.getInstance(data);
+            if (stack == null) {
+                throw new IllegalArgumentException("ItemsAdder item with id " + data + " not found");
             }
-            return CustomStack.getInstance(data).getItemStack();
+            return stack.getItemStack();
         }
     },
     /**

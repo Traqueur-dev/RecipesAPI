@@ -48,4 +48,9 @@ public class MaterialIngredient extends Ingredient {
     public RecipeChoice choice() {
         return new RecipeChoice.MaterialChoice(this.material);
     }
+
+    @Override
+    public String toString() {
+        return this.material.toString();
+    }
 }

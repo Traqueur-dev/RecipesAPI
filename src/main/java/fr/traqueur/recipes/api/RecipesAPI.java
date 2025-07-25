@@ -201,4 +201,11 @@ public final class RecipesAPI {
     public boolean isDebug() {
         return debug;
     }
+
+    public void debug(String message, Object... args) {
+        String formattedMessage = String.format(message, args);
+        if (debug) {
+            this.plugin.getLogger().info(formattedMessage);
+        }
+    }
 }
