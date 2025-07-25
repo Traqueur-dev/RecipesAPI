@@ -49,4 +49,9 @@ public class TagIngredient extends Ingredient {
     public RecipeChoice choice() {
         return new RecipeChoice.MaterialChoice(this.tag);
     }
+
+    @Override
+    public String toString() {
+        return this.tag.getKey().toString();
+    }
 }

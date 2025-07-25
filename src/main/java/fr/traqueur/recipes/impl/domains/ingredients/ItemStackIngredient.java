@@ -79,4 +79,11 @@ public class ItemStackIngredient extends Ingredient {
     public RecipeChoice choice() {
         return new RecipeChoice.MaterialChoice(this.item.getType());
     }
+
+    @Override
+    public String toString() {
+        return "ItemStackIngredient{" +
+                "item=" + item +
+                '}';
+    }
 }
