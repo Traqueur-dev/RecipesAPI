@@ -76,7 +76,10 @@ public class PrepareCraftListener implements Listener {
                     .findFirst()
                     .ifPresent(recipe -> {
                 if(!isSimilar(item, itemRecipe.ingredients()[0])) {
+                    this.api.debug("The smelting recipe %s is not good.", itemRecipe.getKey());
                     event.setCancelled(true);
+                } else {
+                    this.api.debug("The smelting recipe %s is good.", itemRecipe.getKey());
                 }
             });
         }
@@ -112,6 +115,7 @@ public class PrepareCraftListener implements Listener {
             if (!itemRecipe.getKey()
                     .equals(recipe.getKey()))
                 continue;
+            this.api.debug("The recipe %s is a smithing recipe.", itemRecipe.getKey());
             Ingredient templateIngredient = itemRecipe.ingredients()[0];
             Ingredient baseIngredient = itemRecipe.ingredients()[1];
             Ingredient additionIngredient = itemRecipe.ingredients()[2];
@@ -121,9 +125,11 @@ public class PrepareCraftListener implements Listener {
                     && isSimilar(addition, additionIngredient);
 
             if(!isSimilar) {
+                this.api.debug("The smithing recipe %s is not good.", itemRecipe.getKey());
                 event.setResult(new ItemStack(Material.AIR));
                 return;
             }
+            this.api.debug("The smithing recipe %s is good.", itemRecipe.getKey());
         }
     }
 
@@ -153,11 +159,13 @@ public class PrepareCraftListener implements Listener {
         for (ItemRecipe itemRecipe : itemRecipes) {
             if(recipe instanceof ShapedRecipe shapedRecipe && itemRecipe.recipeType() == RecipeType.CRAFTING_SHAPED) {
                 if (!shapedRecipe.getKey().equals(itemRecipe.getKey())) continue;
+                this.api.debug("The recipe %s is a shaped recipe.", itemRecipe.getKey());
                 this.checkGoodShapedRecipe(itemRecipe, event);
             }
 
             if(recipe instanceof ShapelessRecipe shapelessRecipe && itemRecipe.recipeType() == RecipeType.CRAFTING_SHAPELESS) {
                 if(!shapelessRecipe.getKey().equals(itemRecipe.getKey())) continue;
+                this.api.debug("The recipe %s is a shapeless recipe.", itemRecipe.getKey());
                 this.checkGoodShapelessRecipe(itemRecipe, event);
             }
         }
@@ -169,18 +177,19 @@ public class PrepareCraftListener implements Listener {
      * @param event the event
      */
     private void checkGoodShapedRecipe(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
-        AtomicBoolean isSimilar = new AtomicBoolean(true);
         ItemStack[] matrix = event.getInventory().getMatrix();
         matrix = Arrays.stream(matrix).filter(stack -> stack != null && stack.getType() != Material.AIR).toArray(ItemStack[]::new);
         String[] pattern = Arrays.stream(itemRecipe.pattern()).map(s -> s.split("")).flatMap(Arrays::stream).toArray(String[]::new);
 
         for (int i = 0; i < matrix.length; i++) {
+            AtomicBoolean isSimilar = new AtomicBoolean(true);
             ItemStack stack = matrix[i];
             char sign = pattern[i].charAt(0);
             Arrays.stream(itemRecipe.ingredients()).filter(ingredient -> ingredient.sign() == sign).findFirst().ifPresent(ingredient -> {
                 isSimilar.set(ingredient.isSimilar(stack));
             });
             if(!isSimilar.get()) {
+                this.api.debug("The shaped recipe %s is not good.", itemRecipe.getKey());
                 event.getInventory().setResult(new ItemStack(Material.AIR));
                 return;
             }
@@ -203,13 +212,18 @@ public class PrepareCraftListener implements Listener {
                 return ingredient.isSimilar(stack);
             });
             if (!found) {
+                this.api.debug("Ingredient %s not found in the matrix.", ingredient.toString());
                 isSimilar.set(false);
                 break;
             }
+            this.api.debug("Ingredient %s found in the matrix.", ingredient.toString());
         }
 
-        if (!isSimilar.get()) {
+        if (!isSimilar.get() || matrix.size() != itemIngredients.length) {
+            this.api.debug("The shapeless recipe %s is not good.", itemRecipe.getKey());
             event.getInventory().setResult(new ItemStack(Material.AIR));
+            return;
         }
+        this.api.debug("The shapeless recipe %s is good.", itemRecipe.getKey());
     }
 }

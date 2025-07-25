@@ -4,6 +4,7 @@ import dev.lone.itemsadder.api.CustomStack;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
+import org.checkerframework.checker.units.qual.C;
 
 /**
  * This class is an implementation of the BaseIngredient class.
@@ -14,8 +15,8 @@ public class ItemsAdderIngredient extends Ingredient {
     /**
      * The CustomStack object that represents the item from ItemsAdder.
      */
-    private final CustomStack customStack;
 
+    private final String data;
     /**
      * Constructor of the class.
      * @param data The id of the item from ItemsAdder.
@@ -23,10 +24,7 @@ public class ItemsAdderIngredient extends Ingredient {
      */
     public ItemsAdderIngredient(String data, Character sign) {
         super(sign);
-        this.customStack = CustomStack.getInstance(data);
-        if(this.customStack == null) {
-            throw new IllegalArgumentException("The item " + data + " is not registered in ItemsAdder.");
-        }
+        this.data = data;
     }
 
     /**
@@ -44,8 +42,7 @@ public class ItemsAdderIngredient extends Ingredient {
     public boolean isSimilar(ItemStack ingredient) {
         CustomStack item = CustomStack.byItemStack(ingredient);
         if (item == null) return false;
-        if (!item.getNamespacedID().equals(this.customStack.getNamespacedID())) return false;
-        return true;
+        return item.getNamespacedID().equals(this.getCustomStack().getNamespacedID());
     }
 
     /**
@@ -53,11 +50,19 @@ public class ItemsAdderIngredient extends Ingredient {
      */
     @Override
     public RecipeChoice choice() {
-        return new RecipeChoice.MaterialChoice(this.customStack.getItemStack().getType());
+        return new RecipeChoice.MaterialChoice(this.getCustomStack().getItemStack().getType());
+    }
+
+    private CustomStack getCustomStack() {
+        CustomStack customStack = CustomStack.getInstance(data);
+        if(customStack == null) {
+            throw new IllegalArgumentException("The item " + data + " is not registered in ItemsAdder.");
+        }
+        return customStack;
     }
 
     @Override
     public String toString() {
-        return this.customStack.getNamespacedID();
+        return this.getCustomStack().getNamespacedID();
     }
 }

@@ -40,4 +40,11 @@ public class StrictItemStackIngredient extends ItemStackIngredient {
     public RecipeChoice choice() {
         return new RecipeChoice.ExactChoice(this.item);
     }
+
+    @Override
+    public String toString() {
+        return "StrictItemStackIngredient{" +
+                "item=" + item +
+                '}';
+    }
 }

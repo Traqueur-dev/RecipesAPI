@@ -74,4 +74,9 @@ public class OraxenIngredient extends Ingredient {
     public RecipeChoice choice() {
         return new RecipeChoice.MaterialChoice(material);
     }
+
+    @Override
+    public String toString() {
+        return this.id;
+    }
 }
