@@ -80,22 +80,20 @@ public class RecipeConfiguration implements Recipe {
 
     /**
      * The constructor of the recipe.
-     * @param plugin the plugin of the recipe.
      * @param name the name of the recipe.
      * @param configuration the configuration of the recipe.
      */
-    public RecipeConfiguration(JavaPlugin plugin, String name, YamlConfiguration configuration) {
-        this(plugin, name, "", configuration);
+    public RecipeConfiguration(String name, YamlConfiguration configuration) {
+        this(name, "", configuration);
     }
 
     /**
      * The constructor of the recipe.
-     * @param plugin the plugin of the recipe.
      * @param name the name of the recipe.
      * @param path the path of the recipe.
      * @param configuration the configuration of the recipe.
      */
-    public RecipeConfiguration(JavaPlugin plugin, String name, String path, YamlConfiguration configuration) {
+    public RecipeConfiguration(String name, String path, YamlConfiguration configuration) {
         this.name = name.replace(".yml", "");
         if(!path.endsWith(".") && !path.isEmpty()) {
             path += ".";
@@ -140,7 +138,7 @@ public class RecipeConfiguration implements Recipe {
                        yield new ItemStackIngredient(this.getItemStack(data[1]), sign);
                    }
                    default -> Hook.HOOKS.stream()
-                           .filter(hook -> hook.isEnable(plugin))
+                           .filter(Hook::isEnable)
                            .filter(hook -> hook.getPluginName().equalsIgnoreCase(data[0]))
                            .findFirst()
                            .orElseThrow(() -> new IllegalArgumentException("The data " + data[0] + " isn't valid."))
@@ -163,7 +161,7 @@ public class RecipeConfiguration implements Recipe {
                 case "material" -> new ItemStack(this.getMaterial(resultParts[1]));
                 case "item", "base64" -> this.getItemStack(resultParts[1]);
                 default -> Hook.HOOKS.stream()
-                        .filter(hook -> hook.isEnable(plugin))
+                        .filter(Hook::isEnable)
                         .filter(hook -> hook.getPluginName().equalsIgnoreCase(resultParts[0]))
                         .findFirst()
                         .orElseThrow(() -> new IllegalArgumentException("The result " + strItem + " isn't valid."))
