@@ -1,6 +1,7 @@
 package fr.traqueur.recipes.api;
 
 import org.bukkit.NamespacedKey;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
@@ -47,7 +48,7 @@ public enum RecipeType {
     /**
      * The plugin that registered this enum.
      */
-    private static JavaPlugin plugin;
+    private static Plugin plugin;
 
     /**
      * The maximum number of ingredients that can be used in this recipe.
@@ -83,7 +84,7 @@ public enum RecipeType {
      * Registers the plugin that is using this enum.
      * @param plugin the plugin
      */
-    public static void registerPlugin(JavaPlugin plugin) {
+    public static void registerPlugin(Plugin plugin) {
         RecipeType.plugin = plugin;
     }
 

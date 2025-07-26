@@ -6,6 +6,7 @@ import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import fr.traqueur.recipes.impl.domains.recipes.RecipeConfiguration;
 import fr.traqueur.recipes.impl.updater.Updater;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -29,7 +30,7 @@ public final class RecipesAPI {
     /**
      * The plugin instance
      */
-    private final JavaPlugin plugin;
+    private final Plugin plugin;
 
     /**
      * If the debug mode is enabled
@@ -46,7 +47,7 @@ public final class RecipesAPI {
      * @param plugin The plugin instance
      * @param debug If the debug mode is enabled
      */
-    public RecipesAPI(JavaPlugin plugin, boolean debug) {
+    public RecipesAPI(Plugin plugin, boolean debug) {
         this(plugin, debug, true);
     }
 
@@ -56,7 +57,7 @@ public final class RecipesAPI {
      * @param debug If the debug mode is enabled
      * @param enableYmlSupport If the yml support is enabled
      */
-    public RecipesAPI(JavaPlugin plugin, boolean debug, boolean enableYmlSupport) {
+    public RecipesAPI(Plugin plugin, boolean debug, boolean enableYmlSupport) {
         this.debug = debug;
         this.plugin = plugin;
         this.recipes = new ArrayList<>();
@@ -77,7 +78,7 @@ public final class RecipesAPI {
 
         if(this.debug) {
             Hook.HOOKS.stream()
-                    .filter(hook -> hook.isEnable(plugin))
+                    .filter(Hook::isEnable)
                     .forEach(hook -> this.plugin.getLogger().info("Hook enabled: " + hook.getPluginName()));
 
             Updater.update("RecipesAPI");
@@ -134,7 +135,7 @@ public final class RecipesAPI {
      */
     private void loadRecipe(File file) {
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
-        var recipe = new RecipeConfiguration(this.plugin, file.getName().replace(".yml", ""), configuration)
+        var recipe = new RecipeConfiguration(file.getName().replace(".yml", ""), configuration)
                 .build();
         this.addRecipe(recipe);
     }
@@ -190,7 +191,7 @@ public final class RecipesAPI {
      * Get the plugin instance
      * @return The plugin instance
      */
-    public JavaPlugin getPlugin() {
+    public Plugin getPlugin() {
         return plugin;
     }
 
