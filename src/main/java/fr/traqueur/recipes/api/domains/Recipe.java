@@ -84,7 +84,7 @@ public interface Recipe {
      */
     default Recipe addIngredient(ItemStack item) {
         if(this.getType() == RecipeType.CRAFTING_SHAPED) {
-            throw new UnsupportedOperationException("You can't add an ingredient withou sign to a shaped recipe");
+            throw new UnsupportedOperationException("You can't add an ingredient without sign to a shaped recipe");
         }
         return addIngredient(item, null);
     }
