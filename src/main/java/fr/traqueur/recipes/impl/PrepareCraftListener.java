@@ -178,18 +178,35 @@ public class PrepareCraftListener implements Listener {
      */
     private void checkGoodShapedRecipe(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
         ItemStack[] matrix = event.getInventory().getMatrix();
-        matrix = Arrays.stream(matrix).filter(stack -> stack != null && stack.getType() != Material.AIR).toArray(ItemStack[]::new);
         String[] pattern = Arrays.stream(itemRecipe.pattern()).map(s -> s.split("")).flatMap(Arrays::stream).toArray(String[]::new);
 
-        for (int i = 0; i < matrix.length; i++) {
-            AtomicBoolean isSimilar = new AtomicBoolean(true);
+        for (int i = 0; i < matrix.length && i < pattern.length; i++) {
             ItemStack stack = matrix[i];
             char sign = pattern[i].charAt(0);
+
+            // Si le pattern indique un espace (air), vérifier que l'item est null ou AIR
+            if (sign == ' ') {
+                if (stack != null && stack.getType() != Material.AIR) {
+                    this.api.debug("The shaped recipe %s is not good - expected air at position %d.", itemRecipe.getKey(), i);
+                    event.getInventory().setResult(new ItemStack(Material.AIR));
+                    return;
+                }
+                continue;
+            }
+
+            // Si l'item est null ou AIR mais que le pattern attend un ingrédient
+            if (stack == null || stack.getType() == Material.AIR) {
+                this.api.debug("The shaped recipe %s is not good - missing ingredient at position %d.", itemRecipe.getKey(), i);
+                event.getInventory().setResult(new ItemStack(Material.AIR));
+                return;
+            }
+
+            AtomicBoolean isSimilar = new AtomicBoolean(false);
             Arrays.stream(itemRecipe.ingredients()).filter(ingredient -> ingredient.sign() == sign).findFirst().ifPresent(ingredient -> {
                 isSimilar.set(ingredient.isSimilar(stack));
             });
             if(!isSimilar.get()) {
-                this.api.debug("The shaped recipe %s is not good.", itemRecipe.getKey());
+                this.api.debug("The shaped recipe %s is not good - ingredient mismatch at position %d.", itemRecipe.getKey(), i);
                 event.getInventory().setResult(new ItemStack(Material.AIR));
                 return;
             }
