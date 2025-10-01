@@ -1,6 +1,5 @@
 package fr.traqueur.recipes.impl.domains.recipes;
 
-import fr.traqueur.recipes.api.Base64;
 import fr.traqueur.recipes.api.RecipeType;
 import fr.traqueur.recipes.api.TagRegistry;
 import fr.traqueur.recipes.api.domains.Ingredient;
@@ -17,11 +16,14 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 /**
  * This class is used to build recipes via yaml configuration.
@@ -106,12 +108,13 @@ public class RecipeConfiguration implements Recipe {
         }
         this.category = configuration.getString(path + "category", "");
         this.group = configuration.getString(path + "group", "");
-        if(!this.checkGategory(this.category)) {
+        if(!this.checkCategory(this.category)) {
             throw new IllegalArgumentException("The category " + this.category + " isn't valid.");
         }
 
         if(configuration.contains(path + "pattern")) {
             this.pattern = configuration.getStringList(path+"pattern").toArray(new String[0]);
+            this.validatePattern();
         }
 
         if(!configuration.contains(path + "ingredients")) {
@@ -153,6 +156,9 @@ public class RecipeConfiguration implements Recipe {
             throw new IllegalArgumentException("The recipe " + name + " doesn't have a result.");
         }
         String strItem = configuration.getString(path + "result.item");
+        if (strItem == null) {
+            throw new IllegalArgumentException("The recipe " + name + " doesn't have a result.");
+        }
         String[] resultParts = strItem.split(":");
         if(resultParts.length == 1) {
             this.result = this.getItemStack(resultParts[0]);
@@ -198,7 +204,25 @@ public class RecipeConfiguration implements Recipe {
      * @return the item stack.
      */
     private ItemStack getItemStack(String base64itemstack) {
-        return Base64.decodeItem(base64itemstack);
+        try {
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Base64.getDecoder().decode(base64itemstack));
+            GZIPInputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream);
+            ObjectInputStream objectInputStream = new BukkitObjectInputStream(gzipInputStream);
+            Object deserialized = objectInputStream.readObject();
+            objectInputStream.close();
+
+            if (!(deserialized instanceof ItemStack)) {
+                throw new IllegalArgumentException("The deserialized object is not an ItemStack.");
+            }
+
+            return (ItemStack) deserialized;
+        } catch (IOException exception) {
+            throw new IllegalArgumentException("The itemstack " + base64itemstack + " is not a valid base64 or corrupted: " + exception.getMessage());
+        } catch (ClassNotFoundException exception) {
+            throw new IllegalArgumentException("The itemstack " + base64itemstack + " contains an unknown class: " + exception.getMessage());
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("The itemstack " + base64itemstack + " is not valid: " + exception.getMessage());
+        }
     }
 
     /**
@@ -219,18 +243,75 @@ public class RecipeConfiguration implements Recipe {
      * @param category the group to check.
      * @return true if the category is valid.
      */
-    private boolean checkGategory(String category) {
-        category = category.toUpperCase();
-        try {
-            CookingBookCategory.valueOf(category);
-        } catch (IllegalArgumentException ignored) {
-            try {
-                CraftingBookCategory.valueOf(category);
-            } catch (IllegalArgumentException ignored_2) {
-                return false;
+    private boolean checkCategory(@NotNull String category) {
+        if(category.isEmpty()) {
+            return true;
+        }
+
+        String upperCategory = category.toUpperCase();
+
+        for(CookingBookCategory cookingCategory : CookingBookCategory.values()) {
+            if(cookingCategory.name().equals(upperCategory)) {
+                return true;
             }
         }
-        return true;
+
+        for(CraftingBookCategory craftingCategory : CraftingBookCategory.values()) {
+            if(craftingCategory.name().equals(upperCategory)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * This method is used to validate the pattern.
+     * It checks if the pattern is valid for a shaped recipe.
+     */
+    private void validatePattern() {
+        if (this.pattern == null || this.pattern.length == 0) {
+            throw new IllegalArgumentException("The recipe " + name + " has an empty pattern.");
+        }
+
+        // Validate pattern size (max 3 rows)
+        if (this.pattern.length > 3) {
+            throw new IllegalArgumentException("The recipe " + name + " has a pattern with more than 3 rows.");
+        }
+
+        // Validate each row length (max 3 characters) and collect all characters
+        Set<Character> patternChars = new HashSet<>();
+        for (int i = 0; i < this.pattern.length; i++) {
+            String row = this.pattern[i];
+            if (row.length() > 3) {
+                throw new IllegalArgumentException("The recipe " + name + " has a pattern row '" + row + "' with more than 3 characters.");
+            }
+            if (row.isEmpty()) {
+                throw new IllegalArgumentException("The recipe " + name + " has an empty pattern row at index " + i + ".");
+            }
+            // Collect all non-space characters
+            for (char c : row.toCharArray()) {
+                if (c != ' ') {
+                    patternChars.add(c);
+                }
+            }
+        }
+
+        // Validate that all pattern characters will have corresponding ingredients
+        if (!patternChars.isEmpty()) {
+            Set<Character> ingredientSigns = new HashSet<>();
+            for (Ingredient ingredient : ingredientList) {
+                if (ingredient.sign() != null) {
+                    ingredientSigns.add(ingredient.sign());
+                }
+            }
+
+            for (Character patternChar : patternChars) {
+                if (!ingredientSigns.contains(patternChar)) {
+                    throw new IllegalArgumentException("The recipe " + name + " has a pattern character '" + patternChar + "' that doesn't match any ingredient sign.");
+                }
+            }
+        }
     }
 
     /**
