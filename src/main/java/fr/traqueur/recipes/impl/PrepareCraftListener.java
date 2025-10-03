@@ -6,6 +6,7 @@ import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockCookEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
@@ -147,7 +148,7 @@ public class PrepareCraftListener implements Listener {
      * This method is called when an item is prepared to be crafted.
      * @param event the event
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPrepareCraft(PrepareItemCraftEvent event) {
         Recipe recipe = event.getRecipe();
         if (recipe == null) return;
@@ -211,6 +212,9 @@ public class PrepareCraftListener implements Listener {
                 return;
             }
         }
+
+        this.api.debug("The shaped recipe %s is good.", itemRecipe.getKey());
+        event.getInventory().setResult(itemRecipe.result());
     }
 
     /**
@@ -247,5 +251,6 @@ public class PrepareCraftListener implements Listener {
         }
 
         this.api.debug("The shapeless recipe %s is good.", itemRecipe.getKey());
+        event.getInventory().setResult(itemRecipe.result());
     }
 }
