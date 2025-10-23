@@ -1,11 +1,22 @@
 package fr.traqueur.recipes.impl.domains;
 
 import fr.traqueur.recipes.api.RecipeType;
+import fr.traqueur.recipes.api.Util;
 import fr.traqueur.recipes.api.domains.Ingredient;
+import fr.traqueur.recipes.api.hook.Hook;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
+import org.bukkit.util.io.BukkitObjectInputStream;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.Base64;
+import java.util.zip.GZIPInputStream;
 
 /**
  * This class represents a recipe for an item
@@ -20,7 +31,7 @@ import org.bukkit.inventory.recipe.CraftingBookCategory;
  * @param cookingTime The cooking time of the recipe
  * @param experience The experience of the recipe
  */
-public record ItemRecipe(String recipeName, String group, String category, RecipeType recipeType, ItemStack result, int amount, Ingredient[] ingredients,
+public record ItemRecipe(String recipeName, String group, String category, RecipeType recipeType, String result, int amount, Ingredient[] ingredients,
                          String[] pattern, int cookingTime, float experience) {
 
     /**
@@ -114,10 +125,30 @@ public record ItemRecipe(String recipeName, String group, String category, Recip
      * @return The bukkit recipe
      */
     public Recipe toBukkitRecipe() {
-        ItemStack result = new ItemStack(this.result());
-        result.setAmount(this.amount());
+        ItemStack result = this.toBukkitItemStack(null);
         NamespacedKey key = this.getKey();
         return this.toBukkitRecipe(key, result);
+    }
+
+    public ItemStack toBukkitItemStack(Player player) {
+        ItemStack result;
+        String[] resultParts = this.result.split(":");
+        if(resultParts.length == 1) {
+            result = Util.getItemStack(resultParts[0]);
+        } else {
+            result = switch (resultParts[0]) {
+                case "material" -> new ItemStack(Util.getMaterial(resultParts[1]));
+                case "item", "base64" -> Util.getItemStack(resultParts[1]);
+                default -> Hook.HOOKS.stream()
+                        .filter(Hook::isEnable)
+                        .filter(hook -> hook.getPluginName().equalsIgnoreCase(resultParts[0]))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("The result " + this.result + " isn't valid."))
+                        .getItemStack(player, resultParts[1]);
+            };
+        }
+        result.setAmount(this.amount());
+        return result;
     }
 
     /**

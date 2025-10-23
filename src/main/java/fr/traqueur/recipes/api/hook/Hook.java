@@ -3,8 +3,10 @@ package fr.traqueur.recipes.api.hook;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.impl.hook.Hooks;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +54,10 @@ public interface Hook {
     /**
      * Get the ItemStack from a result part
      * @param resultPart The result part to get the ItemStack from
+     * @param player The player (can be null) if needed for dynamic items generation
+     * This method are called when a recipe is register so, player is null at this moment
+     * but when crafting, player are provided to get the correct item (not in Furnace)
      * @return The ItemStack from the result part
      */
-    ItemStack getItemStack(String resultPart);
+    ItemStack getItemStack(@Nullable Player player, String resultPart);
 }
