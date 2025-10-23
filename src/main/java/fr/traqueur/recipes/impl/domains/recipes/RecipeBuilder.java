@@ -1,6 +1,7 @@
 package fr.traqueur.recipes.impl.domains.recipes;
 
 import fr.traqueur.recipes.api.RecipeType;
+import fr.traqueur.recipes.api.Util;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.domains.Recipe;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
@@ -28,7 +29,7 @@ public class RecipeBuilder implements Recipe {
     /**
      * The result of the recipe.
      */
-    private ItemStack result;
+    private String result;
 
     /**
      * The amount of the result.
@@ -85,7 +86,7 @@ public class RecipeBuilder implements Recipe {
         if(type == null) {
             throw new IllegalArgumentException("Recipe type is not set");
         }
-        this.result = result;
+        this.result = Util.fromItemStack(result);
         return this;
     }
 

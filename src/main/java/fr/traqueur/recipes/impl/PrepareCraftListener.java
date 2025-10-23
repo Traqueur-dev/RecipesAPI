@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockCookEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.inventory.*;
@@ -63,6 +64,7 @@ public class PrepareCraftListener implements Listener {
         if(event.isCancelled()) {
             return;
         }
+
         ItemStack item = event.getSource();
         if (item == null || item.getType() == Material.AIR) return;
         ItemStack result = event.getResult();

@@ -39,6 +39,19 @@ public class Util {
         }
     }
 
+    public static String fromItemStack(ItemStack itemStack) {
+        try {
+            java.io.ByteArrayOutputStream byteArrayOutputStream = new java.io.ByteArrayOutputStream();
+            java.util.zip.GZIPOutputStream gzipOutputStream = new java.util.zip.GZIPOutputStream(byteArrayOutputStream);
+            org.bukkit.util.io.BukkitObjectOutputStream bukkitObjectOutputStream = new org.bukkit.util.io.BukkitObjectOutputStream(gzipOutputStream);
+            bukkitObjectOutputStream.writeObject(itemStack);
+            bukkitObjectOutputStream.close();
+            return Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The itemstack " + itemStack + " cannot be serialized: " + e.getMessage());
+        }
+    }
+
     /**
      * This method is used to get the material from the string.
      * @param material the material string.
