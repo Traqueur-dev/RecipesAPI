@@ -19,7 +19,17 @@ import java.io.ObjectInputStream;
 import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * This class is used to provide utility methods for recipes.
+ */
 public class Util {
+
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private Util() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
 
     /**
      * This method is used to get the itemstack from base64 string
@@ -48,6 +58,11 @@ public class Util {
         }
     }
 
+    /**
+     * This method is used to convert an itemstack to a base64 string.
+     * @param itemStack the item stack.
+     * @return the base64 string.
+     */
     public static String fromItemStack(ItemStack itemStack) {
         try {
             java.io.ByteArrayOutputStream byteArrayOutputStream = new java.io.ByteArrayOutputStream();
@@ -111,25 +126,6 @@ public class Util {
                         .getIngredient(data[1], sign);
             };
         }
-    }
-
-    /**
-     * Parse an ingredient from a string without strict mode.
-     * @param itemString The string representation of the ingredient
-     * @param sign The sign of the ingredient (can be null for shapeless recipes)
-     * @return The parsed ingredient
-     */
-    public static Ingredient parseIngredient(String itemString, Character sign) {
-        return parseIngredient(itemString, sign, false);
-    }
-
-    /**
-     * Parse an ingredient from a string without sign and strict mode.
-     * @param itemString The string representation of the ingredient
-     * @return The parsed ingredient
-     */
-    public static Ingredient parseIngredient(String itemString) {
-        return parseIngredient(itemString, null, false);
     }
 
     /**

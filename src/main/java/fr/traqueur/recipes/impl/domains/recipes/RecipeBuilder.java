@@ -17,6 +17,12 @@ import java.util.List;
 public class RecipeBuilder implements Recipe {
 
     /**
+     * Default constructor.
+     */
+    public RecipeBuilder() {
+    }
+
+    /**
      * The list of ingredients.
      */
     private final List<Ingredient> ingredientList = new ArrayList<>();

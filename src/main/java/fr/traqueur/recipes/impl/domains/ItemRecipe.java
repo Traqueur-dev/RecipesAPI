@@ -131,6 +131,11 @@ public record ItemRecipe(String recipeName, String group, String category, Recip
         return this.toBukkitRecipe(key, result);
     }
 
+    /**
+     * Convert the result to a bukkit item stack
+     * @param player The player to get the item stack for (can be null)
+     * @return The bukkit item stack
+     */
     public ItemStack toBukkitItemStack(Player player) {
         ItemStack result;
         String[] resultParts = this.result.split(":");

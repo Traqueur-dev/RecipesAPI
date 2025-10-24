@@ -104,7 +104,7 @@ public final class TestPlugin extends JavaPlugin {
                 .addIngredient(magicPaper, true)  // true = strict matching (all metadata must match)
                 .setPriority(10)  // Higher priority than normal recipes
                 .build();
-
+        
         // 4. Furnace smelting recipe with cooking time and experience
         ItemRecipe recipe4 = new RecipeBuilder()
                 .setType(RecipeType.SMELTING)
@@ -189,6 +189,7 @@ The API supports several types of ingredients:
 - **Tag**: Minecraft tags (e.g., planks, logs, wool)
 - **Plugin Items**: ItemsAdder and Oraxen custom items
 
+<<<<<<< HEAD
 ### Ingredient Matching Modes
 
 **Normal Mode** (default):
@@ -218,6 +219,10 @@ ingredients:
     sign: 'C'
     strict: true  # Requires exact match
 ```
+
+### Important Notes
+- **Display Name**: Player can rename items - only lore, custom model data, and PDC are checked
+- **Strict Mode**: Use `.addIngredient(item, sign, true)` to require exact match including display name
 
 ## API Documentation
 The API is simple and intuitive to use. You can easily:
@@ -397,8 +402,14 @@ ingredients:
   ```
 
 #### Field Details
-- `sign` - Character used in shaped recipe patterns (required for `CRAFTING_SHAPED`, ignored for shapeless)
-- `strict` - When `true`, requires exact item match (only applies to `item:` and `base64:` types)
+- `item: MATERIAL_NAME` - Simple material
+- `item: material:MATERIAL_NAME` - Explicit material
+- `item: tag:TAG_NAME` - Minecraft tag
+- `item: item:BASE64_STRING` or `item: base64:BASE64_STRING` - Custom item from Base64
+- `item: itemsadder:ITEM_ID` - ItemsAdder item
+- `item: oraxen:ITEM_ID` - Oraxen item
+- `sign: X` - Character used in shaped recipe patterns (required for shaped recipes)
+- `strict: true` - Require exact item match including display name (optional, default: false)
 
 ### Example: Smelting Recipe
 

@@ -149,8 +149,9 @@ public class RecipeConfiguration implements Recipe {
     }
 
     /**
-     * This method is used to validate the pattern.
-     * It checks if the pattern is valid for a shaped recipe.
+     * This method is used to check if the category is valid.
+     * @param category the group to check.
+     * @return true if the category is valid.
      */
     private boolean checkCategory(@NotNull String category) {
         if(category.isEmpty()) {
@@ -312,18 +313,18 @@ public class RecipeConfiguration implements Recipe {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ItemRecipe build() {
-        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, resultStr, amount, experience, priority);
-    }
-
-    /**
      * Get the priority of the recipe.
      * @return the priority of the recipe.
      */
     public int getPriority() {
         return priority;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ItemRecipe build() {
+        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, resultStr, amount, experience, priority);
     }
 }
