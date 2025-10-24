@@ -16,8 +16,7 @@ repositories {
         url = "https://oss.sonatype.org/content/groups/public/"
     }
     maven {
-        name = "jitpack"
-        url = "https://jitpack.io"
+        url "https://maven.devs.beer/"
     }
     maven {
         url "https://repo.oraxen.com/releases"
@@ -25,16 +24,16 @@ repositories {
 }
 
 dependencies {
-    compileOnly "org.spigotmc:spigot-api:1.21.3-R0.1-SNAPSHOT"
+    compileOnly "org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT"
 
     // Hooks
     compileOnly 'io.th0rgal:oraxen:1.181.0'
-    compileOnly 'com.github.LoneDev6:API-ItemsAdder:3.6.1'
+    compileOnly 'dev.lone:api-itemsadder:4.0.10'
 }
 
 tasks.register('generateVersionProperties') {
     doLast {
-        def file = new File("$projectDir/src/main/resources/version.properties")
+        def file = new File("$projectDir/src/main/resources/recipeapi.properties")
         if (!file.parentFile.exists()) {
             file.parentFile.mkdirs()
         }
@@ -45,6 +44,8 @@ tasks.register('generateVersionProperties') {
 processResources.dependsOn generateVersionProperties
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
     withSourcesJar()
     withJavadocJar()
 }

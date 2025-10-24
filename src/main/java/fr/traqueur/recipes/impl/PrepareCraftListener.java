@@ -6,6 +6,7 @@ import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockCookEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
@@ -147,7 +148,7 @@ public class PrepareCraftListener implements Listener {
      * This method is called when an item is prepared to be crafted.
      * @param event the event
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPrepareCraft(PrepareItemCraftEvent event) {
         Recipe recipe = event.getRecipe();
         if (recipe == null) return;
@@ -211,6 +212,9 @@ public class PrepareCraftListener implements Listener {
                 return;
             }
         }
+
+        this.api.debug("The shaped recipe %s is good.", itemRecipe.getKey());
+        event.getInventory().setResult(itemRecipe.result());
     }
 
     /**
@@ -219,28 +223,34 @@ public class PrepareCraftListener implements Listener {
      * @param event the event
      */
     private void checkGoodShapelessRecipe(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
-        List<ItemStack> matrix = Arrays.stream(event.getInventory().getMatrix()).filter(Objects::nonNull).filter(it -> it.getType() != Material.AIR).toList();
+        List<ItemStack> matrix = new ArrayList<>(Arrays.stream(event.getInventory().getMatrix()).filter(Objects::nonNull).filter(it -> it.getType() != Material.AIR).toList());
         Ingredient[] itemIngredients = itemRecipe.ingredients();
 
-        AtomicBoolean isSimilar = new AtomicBoolean(true);
-        for (Ingredient ingredient : itemIngredients) {
-            boolean found = matrix.stream().anyMatch(stack -> {
-                if (stack == null || stack.getType() == Material.AIR) return false;
-                return ingredient.isSimilar(stack);
-            });
-            if (!found) {
-                this.api.debug("Ingredient %s not found in the matrix.", ingredient.toString());
-                isSimilar.set(false);
-                break;
-            }
-            this.api.debug("Ingredient %s found in the matrix.", ingredient.toString());
-        }
-
-        if (!isSimilar.get() || matrix.size() != itemIngredients.length) {
-            this.api.debug("The shapeless recipe %s is not good.", itemRecipe.getKey());
+        if (matrix.size() != itemIngredients.length) {
+            this.api.debug("The shapeless recipe %s is not good - wrong number of items.", itemRecipe.getKey());
             event.getInventory().setResult(new ItemStack(Material.AIR));
             return;
         }
+
+        for (Ingredient ingredient : itemIngredients) {
+            boolean found = false;
+            for (int i = 0; i < matrix.size(); i++) {
+                ItemStack stack = matrix.get(i);
+                if (stack != null && stack.getType() != Material.AIR && ingredient.isSimilar(stack)) {
+                    this.api.debug("Ingredient %s found in the matrix.", ingredient.toString());
+                    matrix.remove(i);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                this.api.debug("Ingredient %s not found in the matrix.", ingredient.toString());
+                event.getInventory().setResult(new ItemStack(Material.AIR));
+                return;
+            }
+        }
+
         this.api.debug("The shapeless recipe %s is good.", itemRecipe.getKey());
+        event.getInventory().setResult(itemRecipe.result());
     }
 }

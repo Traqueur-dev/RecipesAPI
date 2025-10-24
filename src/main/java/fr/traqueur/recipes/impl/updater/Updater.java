@@ -44,7 +44,7 @@ public class Updater {
     private void checkUpdates() {
         if(!this.isUpToDate()) {
             Logger.getLogger(name)
-                    .warning("The framework is not up to date, " +
+                    .warning("The API is not up to date, " +
                             "the latest version is " + this.fetchLatestVersion());
         }
     }
@@ -56,7 +56,7 @@ public class Updater {
     private String getVersion() {
         Properties prop = new Properties();
         try {
-            prop.load(Updater.class.getClassLoader().getResourceAsStream("version.properties"));
+            prop.load(Updater.class.getClassLoader().getResourceAsStream("recipeapi.properties"));
             return prop.getProperty("version");
         } catch (IOException e) {
             throw new RuntimeException(e);

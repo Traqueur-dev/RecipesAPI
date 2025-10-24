@@ -41,6 +41,9 @@ public class ItemStackIngredient extends Ingredient {
      */
     @Override
     public boolean isSimilar(ItemStack item) {
+        if (item == null || this.item == null) {
+            return false;
+        }
 
         return item.getType() == this.item.getType()
                 && item.getAmount() >= this.item.getAmount()
@@ -55,21 +58,26 @@ public class ItemStackIngredient extends Ingredient {
      * @return True if the meta of the two items are similar
      */
     private boolean similarMeta(ItemMeta sourceMeta, ItemMeta ingredientMeta) {
-        for (NamespacedKey key : sourceMeta.getPersistentDataContainer().getKeys()) {
-            if (!ingredientMeta.getPersistentDataContainer().has(key)) {
-                System.out.println("Key " + key + " not found in ingredient meta");
+        // Check if all required PDC keys from ingredient are present in source
+        for (NamespacedKey key : ingredientMeta.getPersistentDataContainer().getKeys()) {
+            if (!sourceMeta.getPersistentDataContainer().has(key)) {
                 return false;
             }
         }
 
-        boolean lore = sourceMeta.hasLore() == ingredientMeta.hasLore() && (!sourceMeta.hasLore()
-                || Objects.equals(sourceMeta.getLore(), ingredientMeta.getLore()));
+        // Check lore (only if ingredient has lore)
+        if (ingredientMeta.hasLore()) {
+            if (!sourceMeta.hasLore() || !Objects.equals(sourceMeta.getLore(), ingredientMeta.getLore())) {
+                return false;
+            }
+        }
 
-        boolean customData = sourceMeta.hasCustomModelData() == ingredientMeta.hasCustomModelData()
-                && (!sourceMeta.hasCustomModelData()
-                    || sourceMeta.getCustomModelData() == ingredientMeta.getCustomModelData());
+        // Check custom model data (only if ingredient has custom model data)
+        if (ingredientMeta.hasCustomModelData()) {
+            return sourceMeta.hasCustomModelData() && sourceMeta.getCustomModelData() == ingredientMeta.getCustomModelData();
+        }
 
-        return lore && customData;
+        return true;
     }
 
     /**
