@@ -5,10 +5,12 @@ import fr.traqueur.recipes.api.RecipesAPI;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockCookEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.inventory.*;
@@ -62,6 +64,7 @@ public class PrepareCraftListener implements Listener {
         if(event.isCancelled()) {
             return;
         }
+
         ItemStack item = event.getSource();
         if (item == null || item.getType() == Material.AIR) return;
         ItemStack result = event.getResult();
@@ -81,6 +84,7 @@ public class PrepareCraftListener implements Listener {
                     event.setCancelled(true);
                 } else {
                     this.api.debug("The smelting recipe %s is good.", itemRecipe.getKey());
+                    event.setResult(itemRecipe.toBukkitItemStack(null));
                 }
             });
         }
@@ -131,6 +135,7 @@ public class PrepareCraftListener implements Listener {
                 return;
             }
             this.api.debug("The smithing recipe %s is good.", itemRecipe.getKey());
+            event.setResult(itemRecipe.toBukkitItemStack((Player) event.getViewers().getFirst()));
         }
     }
 
@@ -161,13 +166,13 @@ public class PrepareCraftListener implements Listener {
             if(recipe instanceof ShapedRecipe shapedRecipe && itemRecipe.recipeType() == RecipeType.CRAFTING_SHAPED) {
                 if (!shapedRecipe.getKey().equals(itemRecipe.getKey())) continue;
                 this.api.debug("The recipe %s is a shaped recipe.", itemRecipe.getKey());
-                this.checkGoodShapedRecipe(itemRecipe, event);
+                this.checkGoodShapedRecipe((Player) event.getViewers().getFirst(), itemRecipe, event);
             }
 
             if(recipe instanceof ShapelessRecipe shapelessRecipe && itemRecipe.recipeType() == RecipeType.CRAFTING_SHAPELESS) {
                 if(!shapelessRecipe.getKey().equals(itemRecipe.getKey())) continue;
                 this.api.debug("The recipe %s is a shapeless recipe.", itemRecipe.getKey());
-                this.checkGoodShapelessRecipe(itemRecipe, event);
+                this.checkGoodShapelessRecipe((Player) event.getViewers().getFirst(), itemRecipe, event);
             }
         }
     }
@@ -177,7 +182,7 @@ public class PrepareCraftListener implements Listener {
      * @param itemRecipe the item recipe
      * @param event the event
      */
-    private void checkGoodShapedRecipe(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
+    private void checkGoodShapedRecipe(Player player, ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
         ItemStack[] matrix = event.getInventory().getMatrix();
         String[] pattern = Arrays.stream(itemRecipe.pattern()).map(s -> s.split("")).flatMap(Arrays::stream).toArray(String[]::new);
 
@@ -214,7 +219,7 @@ public class PrepareCraftListener implements Listener {
         }
 
         this.api.debug("The shaped recipe %s is good.", itemRecipe.getKey());
-        event.getInventory().setResult(itemRecipe.result());
+        event.getInventory().setResult(itemRecipe.toBukkitItemStack(player));
     }
 
     /**
@@ -222,7 +227,7 @@ public class PrepareCraftListener implements Listener {
      * @param itemRecipe the item recipe
      * @param event the event
      */
-    private void checkGoodShapelessRecipe(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
+    private void checkGoodShapelessRecipe(Player player, ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
         List<ItemStack> matrix = new ArrayList<>(Arrays.stream(event.getInventory().getMatrix()).filter(Objects::nonNull).filter(it -> it.getType() != Material.AIR).toList());
         Ingredient[] itemIngredients = itemRecipe.ingredients();
 
@@ -251,6 +256,6 @@ public class PrepareCraftListener implements Listener {
         }
 
         this.api.debug("The shapeless recipe %s is good.", itemRecipe.getKey());
-        event.getInventory().setResult(itemRecipe.result());
+        event.getInventory().setResult(itemRecipe.toBukkitItemStack(player));
     }
 }

@@ -5,6 +5,7 @@ import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.hook.hooks.ItemsAdderIngredient;
 import fr.traqueur.recipes.impl.hook.hooks.OraxenIngredient;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -22,7 +23,7 @@ public enum Hooks implements Hook {
         }
 
         @Override
-        public ItemStack getItemStack(String data) {
+        public ItemStack getItemStack(Player player, String data) {
             CustomStack stack = CustomStack.getInstance(data);
             if (stack == null) {
                 throw new IllegalArgumentException("ItemsAdder item with id " + data + " not found");
@@ -40,7 +41,7 @@ public enum Hooks implements Hook {
         }
 
         @Override
-        public ItemStack getItemStack(String data) {
+        public ItemStack getItemStack(Player player, String data) {
             var builder = io.th0rgal.oraxen.api.OraxenItems.getItemById(data);
             if(builder == null) {
                 throw new IllegalArgumentException("Oraxen item with id " + data + " not found");

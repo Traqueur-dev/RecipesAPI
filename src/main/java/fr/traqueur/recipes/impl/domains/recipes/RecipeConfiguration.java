@@ -2,6 +2,7 @@ package fr.traqueur.recipes.impl.domains.recipes;
 
 import fr.traqueur.recipes.api.RecipeType;
 import fr.traqueur.recipes.api.TagRegistry;
+import fr.traqueur.recipes.api.Util;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.domains.Recipe;
 import fr.traqueur.recipes.api.hook.Hook;
@@ -43,7 +44,7 @@ public class RecipeConfiguration implements Recipe {
     /**
      * The result of the recipe.
      */
-    private final ItemStack result;
+    private final String resultStr;
 
     /**
      * The amount of the result.
@@ -128,17 +129,17 @@ public class RecipeConfiguration implements Recipe {
 
             String[] data = material.split(":");
             if(data.length == 1) {
-                this.ingredientList.add(new MaterialIngredient(this.getMaterial(data[0]), sign));
+                this.ingredientList.add(new MaterialIngredient(Util.getMaterial(data[0]), sign));
             } else {
                Ingredient ingred = switch (data[0]) {
-                   case "material" -> new MaterialIngredient(this.getMaterial(data[1]), sign);
+                   case "material" -> new MaterialIngredient(Util.getMaterial(data[1]), sign);
                    case "tag" -> new TagIngredient(this.getTag(data[1]), sign);
                    case "item" -> {
                        boolean strict = this.isStrict(ingredient);
                        if(strict) {
-                           yield new StrictItemStackIngredient(this.getItemStack(data[1]), sign);
+                           yield new StrictItemStackIngredient(Util.getItemStack(data[1]), sign);
                        }
-                       yield new ItemStackIngredient(this.getItemStack(data[1]), sign);
+                       yield new ItemStackIngredient(Util.getItemStack(data[1]), sign);
                    }
                    default -> Hook.HOOKS.stream()
                            .filter(Hook::isEnable)
@@ -159,21 +160,7 @@ public class RecipeConfiguration implements Recipe {
         if (strItem == null) {
             throw new IllegalArgumentException("The recipe " + name + " doesn't have a result.");
         }
-        String[] resultParts = strItem.split(":");
-        if(resultParts.length == 1) {
-            this.result = this.getItemStack(resultParts[0]);
-        } else {
-            this.result = switch (resultParts[0]) {
-                case "material" -> new ItemStack(this.getMaterial(resultParts[1]));
-                case "item", "base64" -> this.getItemStack(resultParts[1]);
-                default -> Hook.HOOKS.stream()
-                        .filter(Hook::isEnable)
-                        .filter(hook -> hook.getPluginName().equalsIgnoreCase(resultParts[0]))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException("The result " + strItem + " isn't valid."))
-                        .getItemStack(resultParts[1]);
-            };
-        }
+        this.resultStr = strItem;
         this.amount = configuration.getInt(path + "result.amount", 1);
 
 
@@ -199,49 +186,35 @@ public class RecipeConfiguration implements Recipe {
     }
 
     /**
-     * This method is used to get the itemstack from base64 string
-     * @param base64itemstack the base64 item stack.
-     * @return the item stack.
-     */
-    private ItemStack getItemStack(String base64itemstack) {
-        try {
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Base64.getDecoder().decode(base64itemstack));
-            GZIPInputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream);
-            ObjectInputStream objectInputStream = new BukkitObjectInputStream(gzipInputStream);
-            Object deserialized = objectInputStream.readObject();
-            objectInputStream.close();
-
-            if (!(deserialized instanceof ItemStack)) {
-                throw new IllegalArgumentException("The deserialized object is not an ItemStack.");
-            }
-
-            return (ItemStack) deserialized;
-        } catch (IOException exception) {
-            throw new IllegalArgumentException("The itemstack " + base64itemstack + " is not a valid base64 or corrupted: " + exception.getMessage());
-        } catch (ClassNotFoundException exception) {
-            throw new IllegalArgumentException("The itemstack " + base64itemstack + " contains an unknown class: " + exception.getMessage());
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("The itemstack " + base64itemstack + " is not valid: " + exception.getMessage());
-        }
-    }
-
-    /**
-     * This method is used to get the material from the string.
-     * @param material the material string.
-     * @return the material.
-     */
-    private Material getMaterial(String material) {
-        try {
-            return Material.valueOf(material.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("The material " + material + " isn't valid.");
-        }
-    }
-
-    /**
      * This method is used to check if the category is valid.
      * @param category the group to check.
      * @return true if the category is valid.
+     */
+    private boolean checkCategory(@NotNull String category) {
+        if(category.isEmpty()) {
+            return true;
+        }
+
+        String upperCategory = category.toUpperCase();
+
+        for(CookingBookCategory cookingCategory : CookingBookCategory.values()) {
+            if(cookingCategory.name().equals(upperCategory)) {
+                return true;
+            }
+        }
+
+        for(CraftingBookCategory craftingCategory : CraftingBookCategory.values()) {
+            if(craftingCategory.name().equals(upperCategory)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * This method is used to validate the pattern.
+     * It checks if the pattern is valid for a shaped recipe.
      */
     private boolean checkCategory(@NotNull String category) {
         if(category.isEmpty()) {
@@ -407,6 +380,6 @@ public class RecipeConfiguration implements Recipe {
      */
     @Override
     public ItemRecipe build() {
-        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, result, amount, experience);
+        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, resultStr, amount, experience);
     }
 }

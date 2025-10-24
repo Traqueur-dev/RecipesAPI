@@ -211,7 +211,7 @@ public interface Recipe {
      * @param experience The experience of the recipe.
      * @return The item recipe.
      */
-    default ItemRecipe getItemRecipe(List<Ingredient> ingredientList, RecipeType type, String[] pattern, int cookingTime, String name, String group, String category, ItemStack result, int amount, float experience) {
+    default ItemRecipe getItemRecipe(List<Ingredient> ingredientList, RecipeType type, String[] pattern, int cookingTime, String name, String group, String category, String result, int amount, float experience) {
         if (ingredientList.isEmpty()) {
             throw new IllegalArgumentException("Ingredients are not set");
         }
