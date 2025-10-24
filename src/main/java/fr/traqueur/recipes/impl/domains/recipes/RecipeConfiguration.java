@@ -1,29 +1,17 @@
 package fr.traqueur.recipes.impl.domains.recipes;
 
 import fr.traqueur.recipes.api.RecipeType;
-import fr.traqueur.recipes.api.TagRegistry;
+import fr.traqueur.recipes.api.Util;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.domains.Recipe;
-import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
-import fr.traqueur.recipes.impl.domains.ingredients.ItemStackIngredient;
-import fr.traqueur.recipes.impl.domains.ingredients.MaterialIngredient;
-import fr.traqueur.recipes.impl.domains.ingredients.StrictItemStackIngredient;
-import fr.traqueur.recipes.impl.domains.ingredients.TagIngredient;
-import org.bukkit.Material;
-import org.bukkit.Tag;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
-import org.bukkit.util.io.BukkitObjectInputStream;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
 
 /**
  * This class is used to build recipes via yaml configuration.
@@ -43,7 +31,7 @@ public class RecipeConfiguration implements Recipe {
     /**
      * The result of the recipe.
      */
-    private final ItemStack result;
+    private final String resultStr;
 
     /**
      * The amount of the result.
@@ -74,6 +62,11 @@ public class RecipeConfiguration implements Recipe {
      * The experience of the recipe.
      */
     private final float experience;
+
+    /**
+     * The priority of the recipe (higher = registered first).
+     */
+    private final int priority;
 
     /**
      * The pattern of the recipe.
@@ -125,31 +118,10 @@ public class RecipeConfiguration implements Recipe {
             String material = (String) ingredient.get("item");
             var objSign = ingredient.getOrDefault("sign", null);
             Character sign = objSign == null ? null : objSign.toString().charAt(0);
+            boolean strict = this.isStrict(ingredient);
 
-            String[] data = material.split(":");
-            if(data.length == 1) {
-                this.ingredientList.add(new MaterialIngredient(this.getMaterial(data[0]), sign));
-            } else {
-               Ingredient ingred = switch (data[0]) {
-                   case "material" -> new MaterialIngredient(this.getMaterial(data[1]), sign);
-                   case "tag" -> new TagIngredient(this.getTag(data[1]), sign);
-                   case "item" -> {
-                       boolean strict = this.isStrict(ingredient);
-                       if(strict) {
-                           yield new StrictItemStackIngredient(this.getItemStack(data[1]), sign);
-                       }
-                       yield new ItemStackIngredient(this.getItemStack(data[1]), sign);
-                   }
-                   default -> Hook.HOOKS.stream()
-                           .filter(Hook::isEnable)
-                           .filter(hook -> hook.getPluginName().equalsIgnoreCase(data[0]))
-                           .findFirst()
-                           .orElseThrow(() -> new IllegalArgumentException("The data " + data[0] + " isn't valid."))
-                           .getIngredient(data[1], sign);
-               };
-               this.ingredientList.add(ingred);
-            }
-
+            Ingredient ingred = Util.parseIngredient(material, sign, strict);
+            this.ingredientList.add(ingred);
         }
 
         if(!configuration.contains(path + "result.item")) {
@@ -159,35 +131,13 @@ public class RecipeConfiguration implements Recipe {
         if (strItem == null) {
             throw new IllegalArgumentException("The recipe " + name + " doesn't have a result.");
         }
-        String[] resultParts = strItem.split(":");
-        if(resultParts.length == 1) {
-            this.result = this.getItemStack(resultParts[0]);
-        } else {
-            this.result = switch (resultParts[0]) {
-                case "material" -> new ItemStack(this.getMaterial(resultParts[1]));
-                case "item", "base64" -> this.getItemStack(resultParts[1]);
-                default -> Hook.HOOKS.stream()
-                        .filter(Hook::isEnable)
-                        .filter(hook -> hook.getPluginName().equalsIgnoreCase(resultParts[0]))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException("The result " + strItem + " isn't valid."))
-                        .getItemStack(resultParts[1]);
-            };
-        }
+        this.resultStr = strItem;
         this.amount = configuration.getInt(path + "result.amount", 1);
 
 
         this.cookingTime = configuration.getInt(path + "cooking-time", 0);
         this.experience = (float) configuration.getDouble(path + "experience", 0d);
-    }
-
-    /**
-     * This method is used to get Tag from the string.
-     * @param data the data to get the tag.
-     * @return the tag.
-     */
-    private Tag<Material> getTag(String data) {
-        return TagRegistry.getTag(data).orElseThrow(() -> new IllegalArgumentException("The tag " + data + " isn't valid."));
+        this.priority = configuration.getInt(path + "priority", 0);
     }
 
     /**
@@ -196,46 +146,6 @@ public class RecipeConfiguration implements Recipe {
      */
     private boolean isStrict(Map<?,?> ingredient) {
         return ingredient.containsKey("strict") && (boolean) ingredient.get("strict");
-    }
-
-    /**
-     * This method is used to get the itemstack from base64 string
-     * @param base64itemstack the base64 item stack.
-     * @return the item stack.
-     */
-    private ItemStack getItemStack(String base64itemstack) {
-        try {
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Base64.getDecoder().decode(base64itemstack));
-            GZIPInputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream);
-            ObjectInputStream objectInputStream = new BukkitObjectInputStream(gzipInputStream);
-            Object deserialized = objectInputStream.readObject();
-            objectInputStream.close();
-
-            if (!(deserialized instanceof ItemStack)) {
-                throw new IllegalArgumentException("The deserialized object is not an ItemStack.");
-            }
-
-            return (ItemStack) deserialized;
-        } catch (IOException exception) {
-            throw new IllegalArgumentException("The itemstack " + base64itemstack + " is not a valid base64 or corrupted: " + exception.getMessage());
-        } catch (ClassNotFoundException exception) {
-            throw new IllegalArgumentException("The itemstack " + base64itemstack + " contains an unknown class: " + exception.getMessage());
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("The itemstack " + base64itemstack + " is not valid: " + exception.getMessage());
-        }
-    }
-
-    /**
-     * This method is used to get the material from the string.
-     * @param material the material string.
-     * @return the material.
-     */
-    private Material getMaterial(String material) {
-        try {
-            return Material.valueOf(material.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("The material " + material + " isn't valid.");
-        }
     }
 
     /**
@@ -403,10 +313,18 @@ public class RecipeConfiguration implements Recipe {
     }
 
     /**
+     * Get the priority of the recipe.
+     * @return the priority of the recipe.
+     */
+    public int getPriority() {
+        return priority;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     public ItemRecipe build() {
-        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, result, amount, experience);
+        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, resultStr, amount, experience, priority);
     }
 }

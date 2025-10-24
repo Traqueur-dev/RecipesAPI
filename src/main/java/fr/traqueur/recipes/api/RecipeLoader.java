@@ -149,22 +149,28 @@ public class RecipeLoader {
      * @return The number of recipes loaded
      */
     public int load() {
-        int count = 0;
+        List<ItemRecipe> recipes = new ArrayList<>();
 
         // Load from folders
         for (File folder : folders) {
-            count += loadFromFolder(folder);
+            loadFromFolder(folder, recipes);
         }
 
         // Load from individual files
         for (File file : files) {
-            if (loadRecipe(file)) {
-                count++;
-            }
+            loadRecipe(file, recipes);
         }
 
-        plugin.getLogger().info("Loaded " + count + " recipes via RecipeLoader.");
-        return count;
+        // Sort recipes by priority (higher priority first)
+        recipes.sort((r1, r2) -> Integer.compare(r2.priority(), r1.priority()));
+
+        // Register sorted recipes
+        for (ItemRecipe recipe : recipes) {
+            api.addRecipe(recipe);
+        }
+
+        plugin.getLogger().info("Loaded " + recipes.size() + " recipes via RecipeLoader.");
+        return recipes.size();
     }
 
     /**
@@ -180,10 +186,9 @@ public class RecipeLoader {
     /**
      * Load all recipes from a folder (recursive)
      * @param folder The folder to load recipes from
-     * @return The number of recipes loaded
+     * @param recipes The list to add loaded recipes to
      */
-    private int loadFromFolder(File folder) {
-        int count = 0;
+    private void loadFromFolder(File folder, List<ItemRecipe> recipes) {
         try (Stream<Path> stream = Files.walk(folder.toPath())) {
             List<File> ymlFiles = stream.map(Path::toFile)
                     .filter(File::isFile)
@@ -191,34 +196,29 @@ public class RecipeLoader {
                     .toList();
 
             for (File file : ymlFiles) {
-                if (loadRecipe(file)) {
-                    count++;
-                }
+                loadRecipe(file, recipes);
             }
         } catch (IOException exception) {
             plugin.getLogger().severe("Could not load recipes from folder " + folder.getAbsolutePath() + ": " + exception.getMessage());
         }
-        return count;
     }
 
     /**
      * Load a recipe from a file
      * @param file The file to load the recipe from
-     * @return true if the recipe was loaded successfully, false otherwise
+     * @param recipes The list to add the loaded recipe to
      */
-    private boolean loadRecipe(File file) {
+    private void loadRecipe(File file, List<ItemRecipe> recipes) {
         try {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             ItemRecipe recipe = new RecipeConfiguration(file.getName().replace(".yml", ""), configuration)
                     .build();
-            api.addRecipe(recipe);
-            return true;
+            recipes.add(recipe);
         } catch (Exception e) {
             plugin.getLogger().severe("Could not load recipe from file " + file.getAbsolutePath() + ": " + e.getMessage());
             if (api.isDebug()) {
                 e.printStackTrace();
             }
-            return false;
         }
     }
 }
