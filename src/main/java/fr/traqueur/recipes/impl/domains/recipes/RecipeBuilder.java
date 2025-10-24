@@ -62,6 +62,11 @@ public class RecipeBuilder implements Recipe {
     private float experience = 0;
 
     /**
+     * The priority of the recipe (higher = registered first).
+     */
+    private int priority = 0;
+
+    /**
      * The pattern of the recipe.
      */
     private String[] pattern = null;
@@ -229,6 +234,19 @@ public class RecipeBuilder implements Recipe {
     }
 
     /**
+     * Set the priority of the recipe (higher = registered first).
+     * @param priority The priority of the recipe.
+     * @return The recipe.
+     */
+    public Recipe setPriority(int priority) {
+        if(type == null) {
+            throw new IllegalArgumentException("Recipe type is not set");
+        }
+        this.priority = priority;
+        return this;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -253,6 +271,6 @@ public class RecipeBuilder implements Recipe {
             throw new IllegalArgumentException("Type is not set");
         }
 
-        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, result, amount, experience);
+        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, result, amount, experience, priority);
     }
 }

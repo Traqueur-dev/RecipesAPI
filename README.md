@@ -6,7 +6,9 @@
 
 ## Features
 - **Create Custom Recipes**: Add shaped, shapeless, furnace, and other types of recipes with ease.
+- **Recipe Priority System**: Control recipe registration order to handle conflicting recipes (higher priority = registered first).
 - **Advanced Recipe Handling**: Support for custom ingredients with metadata (lore, custom model data, persistent data container).
+- **Strict Ingredient Matching**: Option to require exact item matches including all metadata for precise recipe control.
 - **Easy Integration**: Simple API to integrate into any Spigot plugin.
 - **Plugin Hooks**: Built-in support for ItemsAdder and Oraxen items. You can create your own hook with your custom item systems.
 - **Version Compatibility**: Works with recent Spigot versions and allows you to create recipes dynamically.
@@ -90,7 +92,17 @@ public final class TestPlugin extends JavaPlugin {
                 .setName("example-custom-ingredient")
                 .setResult(new ItemStack(Material.DIAMOND))
                 .setAmount(64)
-                .addIngredient(magicPaper)
+                .addIngredient(magicPaper, false)  // false = normal matching (lore must match)
+                .build();
+
+        // 3b. Same recipe but with strict matching (exact item required)
+        ItemRecipe recipe3strict = new RecipeBuilder()
+                .setType(RecipeType.CRAFTING_SHAPELESS)
+                .setName("example-custom-ingredient-strict")
+                .setResult(new ItemStack(Material.EMERALD))
+                .setAmount(32)
+                .addIngredient(magicPaper, true)  // true = strict matching (all metadata must match)
+                .setPriority(10)  // Higher priority than normal recipes
                 .build();
 
         // 4. Furnace smelting recipe with cooking time and experience
@@ -108,6 +120,7 @@ public final class TestPlugin extends JavaPlugin {
         recipesAPI.addRecipe(recipe1);
         recipesAPI.addRecipe(recipe2);
         recipesAPI.addRecipe(recipe3);
+        recipesAPI.addRecipe(recipe3strict);
         recipesAPI.addRecipe(recipe4);
     }
 }
@@ -176,9 +189,35 @@ The API supports several types of ingredients:
 - **Tag**: Minecraft tags (e.g., planks, logs, wool)
 - **Plugin Items**: ItemsAdder and Oraxen custom items
 
-### Important Notes
-- **Display Name**: Player can rename items - only lore, custom model data, and PDC are checked
-- **Strict Mode**: Use `.addIngredient(item, sign, true)` to require exact match including display name
+### Ingredient Matching Modes
+
+**Normal Mode** (default):
+- Only checks metadata that is present in the recipe ingredient
+- Player can add extra metadata without breaking the recipe
+- Display name is NOT checked (players can rename items)
+- Lore, Custom Model Data, and PDC keys present in ingredient must match
+
+**Strict Mode** (`strict: true`):
+- Requires exact match using Bukkit's `ItemStack.isSimilar()`
+- All metadata must match exactly
+- Use this when you need precise ingredient control
+
+Example in code:
+```java
+// Normal mode - flexible matching
+.addIngredient(customItem, 'C', false)
+
+// Strict mode - exact matching
+.addIngredient(customItem, 'C', true)
+```
+
+Example in YAML:
+```yaml
+ingredients:
+  - item: item:COBBLESTONE
+    sign: 'C'
+    strict: true  # Requires exact match
+```
 
 ## API Documentation
 The API is simple and intuitive to use. You can easily:
@@ -291,6 +330,7 @@ category: "MISC"
 - `category` - Recipe category (BUILDING, REDSTONE, EQUIPMENT, MISC for crafting; FOOD, BLOCKS, MISC for cooking)
 - `cooking-time` - Cooking time in ticks for smelting recipes (default: 0)
 - `experience` - Experience reward for smelting recipes (default: 0.0)
+- `priority` - Recipe registration priority (default: 0, higher = registered first)
 
 ### Pattern Validation
 
@@ -301,14 +341,64 @@ For `CRAFTING_SHAPED` recipes, the pattern is validated:
 - Empty rows are not allowed
 
 ### Ingredient Types in YAML
-- `item: MATERIAL_NAME` - Simple material
-- `item: material:MATERIAL_NAME` - Explicit material
-- `item: tag:TAG_NAME` - Minecraft tag
-- `item: item:BASE64_STRING` or `item: base64:BASE64_STRING` - Custom item from Base64
-- `item: itemsadder:ITEM_ID` - ItemsAdder item
-- `item: oraxen:ITEM_ID` - Oraxen item
-- `sign: X` - Character used in shaped recipe patterns (required for shaped recipes)
-- `strict: true` - Require exact item match including display name (optional, default: false)
+
+#### Basic Format
+```yaml
+ingredients:
+  - item: <type>:<value>
+    sign: 'X'      # Optional: Required for shaped recipes
+    strict: true   # Optional: Enable strict matching (default: false)
+```
+
+#### Supported Types
+
+- **Simple Material** (auto-detected):
+  ```yaml
+  - item: DIAMOND  # No prefix = Material
+  ```
+
+- **Explicit Material** (same as above):
+  ```yaml
+  - item: material:DIAMOND
+  ```
+
+- **ItemStack from Material** (with metadata support):
+  ```yaml
+  - item: item:COBBLESTONE
+    strict: true  # Recommended for items with metadata
+  ```
+  Creates an ItemStack that can have metadata (lore, custom model data, PDC)
+
+- **ItemStack from Base64**:
+  ```yaml
+  - item: base64:BASE64_ENCODED_ITEM_STRING
+    strict: true  # Recommended for custom items
+  ```
+  Load a custom item from a serialized Base64 string
+
+- **Minecraft Tag**:
+  ```yaml
+  - item: tag:planks  # Accepts any plank type
+  ```
+
+- **ItemsAdder Item**:
+  ```yaml
+  - item: itemsadder:custom_item_id
+  ```
+
+- **Oraxen Item**:
+  ```yaml
+  - item: oraxen:custom_item_id
+  ```
+
+- **Custom Plugin Hook**:
+  ```yaml
+  - item: yourplugin:custom_item_id
+  ```
+
+#### Field Details
+- `sign` - Character used in shaped recipe patterns (required for `CRAFTING_SHAPED`, ignored for shapeless)
+- `strict` - When `true`, requires exact item match (only applies to `item:` and `base64:` types)
 
 ### Example: Smelting Recipe
 
@@ -329,12 +419,133 @@ category: MISC
 ```yaml
 type: CRAFTING_SHAPELESS
 ingredients:
-  - item: item:BASE64_ENCODED_ITEM_HERE
+  - item: base64:BASE64_ENCODED_ITEM_HERE
     strict: true
 result:
   item: DIAMOND
   amount: 1
 ```
+
+## Recipe Priority System
+
+When multiple recipes have similar ingredients, the **priority** field determines which recipe is checked first. This is crucial for handling conflicting recipes.
+
+### How Priority Works
+- Recipes are sorted by priority before registration (higher priority = registered first)
+- Default priority is `0`
+- Higher priority recipes are checked before lower priority ones
+- Useful for specific recipes that should take precedence over generic ones
+
+### Example Use Case: Compressed Cobblestone
+
+```yaml
+# cobblestone_to_compressed_x1.yml
+type: CRAFTING_SHAPED
+priority: 0  # Lower priority (default)
+pattern:
+  - "CCC"
+  - "CCC"
+  - "CCC"
+ingredients:
+  - item: material:COBBLESTONE
+    sign: 'C'
+result:
+  item: yourplugin:compressed_cobblestone_x1
+  amount: 1
+```
+
+```yaml
+# compressed_x1_to_x2.yml
+type: CRAFTING_SHAPED
+priority: 10  # Higher priority - checked first!
+pattern:
+  - "CCC"
+  - "CCC"
+  - "CCC"
+ingredients:
+  - item: item:COMPRESSED_COBBLESTONE_X1  # Custom item with metadata
+    sign: 'C'
+    strict: true  # Important: ensures exact match
+result:
+  item: yourplugin:compressed_cobblestone_x2
+  amount: 1
+```
+
+In this example, the x1→x2 recipe will be checked first because it has `priority: 10`. The `strict: true` flag ensures that only compressed x1 cobblestone (not regular cobblestone) triggers this recipe.
+
+### Priority in Code
+
+```java
+ItemRecipe highPriorityRecipe = new RecipeBuilder()
+    .setType(RecipeType.CRAFTING_SHAPED)
+    .setName("specific-recipe")
+    .setPriority(10)  // Higher priority
+    .setPattern("AAA", "AAA", "AAA")
+    .addIngredient(specificItem, 'A', true)  // Strict matching
+    .setResult(new ItemStack(Material.DIAMOND))
+    .build();
+
+ItemRecipe lowPriorityRecipe = new RecipeBuilder()
+    .setType(RecipeType.CRAFTING_SHAPED)
+    .setName("generic-recipe")
+    .setPriority(0)  // Default priority
+    .setPattern("AAA", "AAA", "AAA")
+    .addIngredient(Material.STONE, 'A')
+    .setResult(new ItemStack(Material.COAL))
+    .build();
+```
+
+## Parsing Ingredients Programmatically
+
+RecipesAPI provides a public utility method to parse ingredients from strings, useful for loading recipes from custom sources or configuration files.
+
+### Using Util.parseIngredient()
+
+```java
+import fr.traqueur.recipes.api.Util;
+import fr.traqueur.recipes.api.domains.Ingredient;
+
+// Parse a simple material
+Ingredient diamond = Util.parseIngredient("DIAMOND");
+
+// Parse with a sign for shaped recipes
+Ingredient stone = Util.parseIngredient("item:STONE", 'S');
+
+// Parse with strict mode enabled
+Ingredient customItem = Util.parseIngredient("item:COBBLESTONE", 'C', true);
+
+// Parse from base64
+Ingredient base64Item = Util.parseIngredient("base64:YOUR_BASE64_STRING", null, true);
+
+// Parse from tags
+Ingredient planks = Util.parseIngredient("tag:planks", 'P');
+
+// Parse from plugin items
+Ingredient iaItem = Util.parseIngredient("itemsadder:custom_item", 'I');
+Ingredient oraxenItem = Util.parseIngredient("oraxen:custom_sword", 'S');
+```
+
+### Method Signatures
+
+```java
+// Full control
+public static Ingredient parseIngredient(String itemString, Character sign, boolean strict)
+
+// Without strict mode (default: false)
+public static Ingredient parseIngredient(String itemString, Character sign)
+
+// Shapeless recipe (no sign)
+public static Ingredient parseIngredient(String itemString)
+```
+
+### Supported Formats
+All formats supported in YAML are also supported here:
+- `"MATERIAL_NAME"` → MaterialIngredient
+- `"material:MATERIAL_NAME"` → MaterialIngredient
+- `"item:MATERIAL_NAME"` → ItemStackIngredient (supports metadata)
+- `"base64:BASE64_STRING"` → ItemStackIngredient from serialized item
+- `"tag:TAG_NAME"` → TagIngredient
+- `"pluginname:item_id"` → Custom plugin hook
 
 ## Resources
 

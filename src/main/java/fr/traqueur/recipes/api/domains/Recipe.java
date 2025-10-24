@@ -209,9 +209,10 @@ public interface Recipe {
      * @param result The result of the recipe.
      * @param amount The amount of the result.
      * @param experience The experience of the recipe.
+     * @param priority The priority of the recipe.
      * @return The item recipe.
      */
-    default ItemRecipe getItemRecipe(List<Ingredient> ingredientList, RecipeType type, String[] pattern, int cookingTime, String name, String group, String category, String result, int amount, float experience) {
+    default ItemRecipe getItemRecipe(List<Ingredient> ingredientList, RecipeType type, String[] pattern, int cookingTime, String name, String group, String category, String result, int amount, float experience, int priority) {
         if (ingredientList.isEmpty()) {
             throw new IllegalArgumentException("Ingredients are not set");
         }
@@ -228,7 +229,7 @@ public interface Recipe {
             throw new IllegalArgumentException("Cooking time is not set");
         }
 
-        return new ItemRecipe(name, group, category, type, result, amount, ingredientList.toArray(new Ingredient[0]), pattern, cookingTime, experience);
+        return new ItemRecipe(name, group, category, type, result, amount, ingredientList.toArray(new Ingredient[0]), pattern, cookingTime, experience, priority);
     }
 
 }

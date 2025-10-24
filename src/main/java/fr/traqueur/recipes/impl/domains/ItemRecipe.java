@@ -30,9 +30,10 @@ import java.util.zip.GZIPInputStream;
  * @param pattern The pattern of the recipe
  * @param cookingTime The cooking time of the recipe
  * @param experience The experience of the recipe
+ * @param priority The priority of the recipe (higher = registered first)
  */
 public record ItemRecipe(String recipeName, String group, String category, RecipeType recipeType, String result, int amount, Ingredient[] ingredients,
-                         String[] pattern, int cookingTime, float experience) {
+                         String[] pattern, int cookingTime, float experience, int priority) {
 
     /**
      * Convert the recipe to a bukkit recipe
@@ -134,11 +135,12 @@ public record ItemRecipe(String recipeName, String group, String category, Recip
         ItemStack result;
         String[] resultParts = this.result.split(":");
         if(resultParts.length == 1) {
-            result = Util.getItemStack(resultParts[0]);
+            result = new ItemStack(Util.getMaterial(resultParts[0]));
         } else {
             result = switch (resultParts[0]) {
                 case "material" -> new ItemStack(Util.getMaterial(resultParts[1]));
-                case "item", "base64" -> Util.getItemStack(resultParts[1]);
+                case "item" -> new ItemStack(Util.getMaterial(resultParts[1]));
+                case "base64" -> Util.getItemStack(resultParts[1]);
                 default -> Hook.HOOKS.stream()
                         .filter(Hook::isEnable)
                         .filter(hook -> hook.getPluginName().equalsIgnoreCase(resultParts[0]))

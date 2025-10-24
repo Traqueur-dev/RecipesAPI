@@ -1,6 +1,15 @@
 package fr.traqueur.recipes.api;
 
+import fr.traqueur.recipes.api.domains.Ingredient;
+import fr.traqueur.recipes.api.hook.Hook;
+import fr.traqueur.recipes.impl.domains.ingredients.ItemStackIngredient;
+import fr.traqueur.recipes.impl.domains.ingredients.MaterialIngredient;
+import fr.traqueur.recipes.impl.domains.ingredients.StrictItemStackIngredient;
+import fr.traqueur.recipes.impl.domains.ingredients.TagIngredient;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
 
@@ -63,6 +72,81 @@ public class Util {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("The material " + material + " isn't valid.");
         }
+    }
+
+    /**
+     * Parse an ingredient from a string.
+     * @param itemString The string representation of the ingredient (e.g., "COBBLESTONE", "material:STONE", "item:DIAMOND", "base64:xxx", "tag:planks", "plugin:custom_item")
+     * @param sign The sign of the ingredient (can be null for shapeless recipes)
+     * @param strict Whether the ingredient should use strict matching (only applies to item: and base64: types)
+     * @return The parsed ingredient
+     */
+    public static Ingredient parseIngredient(String itemString, Character sign, boolean strict) {
+        String[] data = itemString.split(":", 2);
+        if(data.length == 1) {
+            return new MaterialIngredient(getMaterial(data[0]), sign);
+        } else {
+            return switch (data[0]) {
+                case "material" -> new MaterialIngredient(getMaterial(data[1]), sign);
+                case "tag" -> new TagIngredient(getTag(data[1]), sign);
+                case "item" -> {
+                    // Create ItemStack from Material for ItemStackIngredient
+                    ItemStack stack = new ItemStack(getMaterial(data[1]));
+                    if(strict) {
+                        yield new StrictItemStackIngredient(stack, sign);
+                    }
+                    yield new ItemStackIngredient(stack, sign);
+                }
+                case "base64" -> {
+                    if(strict) {
+                        yield new StrictItemStackIngredient(getItemStack(data[1]), sign);
+                    }
+                    yield new ItemStackIngredient(getItemStack(data[1]), sign);
+                }
+                default -> Hook.HOOKS.stream()
+                        .filter(Hook::isEnable)
+                        .filter(hook -> hook.getPluginName().equalsIgnoreCase(data[0]))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("The data " + data[0] + " isn't valid."))
+                        .getIngredient(data[1], sign);
+            };
+        }
+    }
+
+    /**
+     * Parse an ingredient from a string without strict mode.
+     * @param itemString The string representation of the ingredient
+     * @param sign The sign of the ingredient (can be null for shapeless recipes)
+     * @return The parsed ingredient
+     */
+    public static Ingredient parseIngredient(String itemString, Character sign) {
+        return parseIngredient(itemString, sign, false);
+    }
+
+    /**
+     * Parse an ingredient from a string without sign and strict mode.
+     * @param itemString The string representation of the ingredient
+     * @return The parsed ingredient
+     */
+    public static Ingredient parseIngredient(String itemString) {
+        return parseIngredient(itemString, null, false);
+    }
+
+    /**
+     * This method is used to get Tag from the string.
+     * @param data the data to get the tag.
+     * @return the tag.
+     */
+    private static Tag<Material> getTag(String data) {
+        Tag<Material> blockTag = Bukkit.getTag(Tag.REGISTRY_BLOCKS, NamespacedKey.minecraft(data), Material.class);
+        if (blockTag != null) {
+            return blockTag;
+        }
+        Tag<Material> itemTag = Bukkit.getTag(Tag.REGISTRY_ITEMS, NamespacedKey.minecraft(data), Material.class);
+        if (itemTag != null) {
+            return itemTag;
+        }
+        throw new IllegalArgumentException("The tag " + data + " isn't valid.");
     }
 
 }

@@ -1,30 +1,16 @@
 package fr.traqueur.recipes.impl.domains.recipes;
 
 import fr.traqueur.recipes.api.RecipeType;
-import fr.traqueur.recipes.api.TagRegistry;
 import fr.traqueur.recipes.api.Util;
 import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.domains.Recipe;
-import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
-import fr.traqueur.recipes.impl.domains.ingredients.ItemStackIngredient;
-import fr.traqueur.recipes.impl.domains.ingredients.MaterialIngredient;
-import fr.traqueur.recipes.impl.domains.ingredients.StrictItemStackIngredient;
-import fr.traqueur.recipes.impl.domains.ingredients.TagIngredient;
-import org.bukkit.Material;
-import org.bukkit.Tag;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
-import org.bukkit.util.io.BukkitObjectInputStream;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
 
 /**
  * This class is used to build recipes via yaml configuration.
@@ -77,6 +63,11 @@ public class RecipeConfiguration implements Recipe {
     private final float experience;
 
     /**
+     * The priority of the recipe (higher = registered first).
+     */
+    private final int priority;
+
+    /**
      * The pattern of the recipe.
      */
     private String[] pattern = null;
@@ -126,31 +117,10 @@ public class RecipeConfiguration implements Recipe {
             String material = (String) ingredient.get("item");
             var objSign = ingredient.getOrDefault("sign", null);
             Character sign = objSign == null ? null : objSign.toString().charAt(0);
+            boolean strict = this.isStrict(ingredient);
 
-            String[] data = material.split(":");
-            if(data.length == 1) {
-                this.ingredientList.add(new MaterialIngredient(Util.getMaterial(data[0]), sign));
-            } else {
-               Ingredient ingred = switch (data[0]) {
-                   case "material" -> new MaterialIngredient(Util.getMaterial(data[1]), sign);
-                   case "tag" -> new TagIngredient(this.getTag(data[1]), sign);
-                   case "item" -> {
-                       boolean strict = this.isStrict(ingredient);
-                       if(strict) {
-                           yield new StrictItemStackIngredient(Util.getItemStack(data[1]), sign);
-                       }
-                       yield new ItemStackIngredient(Util.getItemStack(data[1]), sign);
-                   }
-                   default -> Hook.HOOKS.stream()
-                           .filter(Hook::isEnable)
-                           .filter(hook -> hook.getPluginName().equalsIgnoreCase(data[0]))
-                           .findFirst()
-                           .orElseThrow(() -> new IllegalArgumentException("The data " + data[0] + " isn't valid."))
-                           .getIngredient(data[1], sign);
-               };
-               this.ingredientList.add(ingred);
-            }
-
+            Ingredient ingred = Util.parseIngredient(material, sign, strict);
+            this.ingredientList.add(ingred);
         }
 
         if(!configuration.contains(path + "result.item")) {
@@ -166,15 +136,7 @@ public class RecipeConfiguration implements Recipe {
 
         this.cookingTime = configuration.getInt(path + "cooking-time", 0);
         this.experience = (float) configuration.getDouble(path + "experience", 0d);
-    }
-
-    /**
-     * This method is used to get Tag from the string.
-     * @param data the data to get the tag.
-     * @return the tag.
-     */
-    private Tag<Material> getTag(String data) {
-        return TagRegistry.getTag(data).orElseThrow(() -> new IllegalArgumentException("The tag " + data + " isn't valid."));
+        this.priority = configuration.getInt(path + "priority", 0);
     }
 
     /**
@@ -183,33 +145,6 @@ public class RecipeConfiguration implements Recipe {
      */
     private boolean isStrict(Map<?,?> ingredient) {
         return ingredient.containsKey("strict") && (boolean) ingredient.get("strict");
-    }
-
-    /**
-     * This method is used to check if the category is valid.
-     * @param category the group to check.
-     * @return true if the category is valid.
-     */
-    private boolean checkCategory(@NotNull String category) {
-        if(category.isEmpty()) {
-            return true;
-        }
-
-        String upperCategory = category.toUpperCase();
-
-        for(CookingBookCategory cookingCategory : CookingBookCategory.values()) {
-            if(cookingCategory.name().equals(upperCategory)) {
-                return true;
-            }
-        }
-
-        for(CraftingBookCategory craftingCategory : CraftingBookCategory.values()) {
-            if(craftingCategory.name().equals(upperCategory)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -380,6 +315,14 @@ public class RecipeConfiguration implements Recipe {
      */
     @Override
     public ItemRecipe build() {
-        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, resultStr, amount, experience);
+        return this.getItemRecipe(ingredientList, type, pattern, cookingTime, name, group, category, resultStr, amount, experience, priority);
+    }
+
+    /**
+     * Get the priority of the recipe.
+     * @return the priority of the recipe.
+     */
+    public int getPriority() {
+        return priority;
     }
 }
