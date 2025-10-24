@@ -6,6 +6,7 @@ import fr.traqueur.recipes.api.domains.Ingredient;
 import fr.traqueur.recipes.api.domains.Recipe;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
 import org.jetbrains.annotations.NotNull;
