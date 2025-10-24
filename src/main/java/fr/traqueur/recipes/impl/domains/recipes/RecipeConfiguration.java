@@ -216,6 +216,32 @@ public class RecipeConfiguration implements Recipe {
      * This method is used to validate the pattern.
      * It checks if the pattern is valid for a shaped recipe.
      */
+    private boolean checkCategory(@NotNull String category) {
+        if(category.isEmpty()) {
+            return true;
+        }
+
+        String upperCategory = category.toUpperCase();
+
+        for(CookingBookCategory cookingCategory : CookingBookCategory.values()) {
+            if(cookingCategory.name().equals(upperCategory)) {
+                return true;
+            }
+        }
+
+        for(CraftingBookCategory craftingCategory : CraftingBookCategory.values()) {
+            if(craftingCategory.name().equals(upperCategory)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * This method is used to validate the pattern.
+     * It checks if the pattern is valid for a shaped recipe.
+     */
     private void validatePattern() {
         if (this.pattern == null || this.pattern.length == 0) {
             throw new IllegalArgumentException("The recipe " + name + " has an empty pattern.");

@@ -5,6 +5,9 @@ import fr.traqueur.recipes.impl.PrepareCraftListener;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import fr.traqueur.recipes.impl.updater.Updater;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
