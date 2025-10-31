@@ -97,7 +97,7 @@ public class RecipeBuilder implements Recipe {
         if(type == null) {
             throw new IllegalArgumentException("Recipe type is not set");
         }
-        this.result = Util.fromItemStack(result);
+        this.result = "base64:" + Util.fromItemStack(result);
         return this;
     }
 
