@@ -158,6 +158,8 @@ public class PrepareCraftListener implements Listener {
         Recipe recipe = event.getRecipe();
         if (recipe == null) return;
 
+        Player player = (Player) event.getViewers().getFirst();
+
         var itemRecipes = api.getRecipes().stream()
                 .filter(itemRecipe -> itemRecipe.recipeType() == RecipeType.CRAFTING_SHAPED || itemRecipe.recipeType() == RecipeType.CRAFTING_SHAPELESS)
                 .toList();
@@ -166,13 +168,28 @@ public class PrepareCraftListener implements Listener {
             if(recipe instanceof ShapedRecipe shapedRecipe && itemRecipe.recipeType() == RecipeType.CRAFTING_SHAPED) {
                 if (!shapedRecipe.getKey().equals(itemRecipe.getKey())) continue;
                 this.api.debug("The recipe %s is a shaped recipe.", itemRecipe.getKey());
-                this.checkGoodShapedRecipe((Player) event.getViewers().getFirst(), itemRecipe, event);
+                this.checkGoodShapedRecipe(player, itemRecipe, event);
+                return;
             }
 
             if(recipe instanceof ShapelessRecipe shapelessRecipe && itemRecipe.recipeType() == RecipeType.CRAFTING_SHAPELESS) {
                 if(!shapelessRecipe.getKey().equals(itemRecipe.getKey())) continue;
                 this.api.debug("The recipe %s is a shapeless recipe.", itemRecipe.getKey());
-                this.checkGoodShapelessRecipe((Player) event.getViewers().getFirst(), itemRecipe, event);
+                this.checkGoodShapelessRecipe(player, itemRecipe, event);
+                return;
+            }
+        }
+
+        // No key match found: another plugin's recipe was selected by Bukkit (e.g. Oraxen/ItemsAdder
+        // registered a recipe with the same material). Try matching our shapeless recipes by content.
+        if (recipe instanceof ShapelessRecipe) {
+            for (ItemRecipe itemRecipe : itemRecipes) {
+                if (itemRecipe.recipeType() != RecipeType.CRAFTING_SHAPELESS) continue;
+                if (this.matchesShapelessContent(itemRecipe, event)) {
+                    this.api.debug("The shapeless recipe %s matched by content (key override).", itemRecipe.getKey());
+                    event.getInventory().setResult(itemRecipe.toBukkitItemStack(player));
+                    return;
+                }
             }
         }
     }
@@ -224,38 +241,56 @@ public class PrepareCraftListener implements Listener {
 
     /**
      * Check if the recipe is good for a shapeless recipe.
+     * Sets the result to AIR if invalid, or to the recipe result if valid.
+     * @param player the player
      * @param itemRecipe the item recipe
      * @param event the event
      */
     private void checkGoodShapelessRecipe(Player player, ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
-        List<ItemStack> matrix = new ArrayList<>(Arrays.stream(event.getInventory().getMatrix()).filter(Objects::nonNull).filter(it -> it.getType() != Material.AIR).toList());
+        if (matchesShapelessContent(itemRecipe, event)) {
+            this.api.debug("The shapeless recipe %s is good.", itemRecipe.getKey());
+            event.getInventory().setResult(itemRecipe.toBukkitItemStack(player));
+        } else {
+            this.api.debug("The shapeless recipe %s is not good.", itemRecipe.getKey());
+            event.getInventory().setResult(new ItemStack(Material.AIR));
+        }
+    }
+
+    /**
+     * Check if the current crafting grid matches a shapeless recipe by ingredient content.
+     * Does not modify the event result.
+     * @param itemRecipe the item recipe to test
+     * @param event the crafting event
+     * @return true if all ingredients are satisfied
+     */
+    private boolean matchesShapelessContent(ItemRecipe itemRecipe, PrepareItemCraftEvent event) {
+        List<ItemStack> matrix = new ArrayList<>(Arrays.stream(event.getInventory().getMatrix())
+                .filter(Objects::nonNull)
+                .filter(it -> it.getType() != Material.AIR)
+                .toList());
         Ingredient[] itemIngredients = itemRecipe.ingredients();
 
         if (matrix.size() != itemIngredients.length) {
-            this.api.debug("The shapeless recipe %s is not good - wrong number of items.", itemRecipe.getKey());
-            event.getInventory().setResult(new ItemStack(Material.AIR));
-            return;
+            this.api.debug("The shapeless recipe %s is not good - wrong number of items (%d vs %d).",
+                    itemRecipe.getKey(), matrix.size(), itemIngredients.length);
+            return false;
         }
 
         for (Ingredient ingredient : itemIngredients) {
             boolean found = false;
             for (int i = 0; i < matrix.size(); i++) {
-                ItemStack stack = matrix.get(i);
-                if (stack != null && stack.getType() != Material.AIR && ingredient.isSimilar(stack)) {
-                    this.api.debug("Ingredient %s found in the matrix.", ingredient.toString());
+                if (ingredient.isSimilar(matrix.get(i))) {
+                    this.api.debug("Ingredient %s found in the matrix.", ingredient);
                     matrix.remove(i);
                     found = true;
                     break;
                 }
             }
             if (!found) {
-                this.api.debug("Ingredient %s not found in the matrix.", ingredient.toString());
-                event.getInventory().setResult(new ItemStack(Material.AIR));
-                return;
+                this.api.debug("Ingredient %s not found in the matrix.", ingredient);
+                return false;
             }
         }
-
-        this.api.debug("The shapeless recipe %s is good.", itemRecipe.getKey());
-        event.getInventory().setResult(itemRecipe.toBukkitItemStack(player));
+        return true;
     }
 }

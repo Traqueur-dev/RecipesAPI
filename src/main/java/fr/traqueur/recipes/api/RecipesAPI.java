@@ -3,6 +3,7 @@ package fr.traqueur.recipes.api;
 import fr.traqueur.recipes.api.hook.Hook;
 import fr.traqueur.recipes.impl.PrepareCraftListener;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
+import fr.traqueur.recipes.impl.domains.recipes.RecipeBuilder;
 import fr.traqueur.recipes.impl.updater.Updater;
 import org.bukkit.plugin.Plugin;
 
@@ -134,5 +135,14 @@ public final class RecipesAPI {
      */
     public RecipeLoader createLoader() {
         return new RecipeLoader(plugin, this);
+    }
+
+    /**
+     * Create a new blank {@link RecipeBuilder} ready to be configured.
+     * Shortcut for {@code new RecipeBuilder()}.
+     * @return a fresh RecipeBuilder
+     */
+    public RecipeBuilder recipe() {
+        return new RecipeBuilder();
     }
 }

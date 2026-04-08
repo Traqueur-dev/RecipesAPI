@@ -1,10 +1,19 @@
 plugins {
-    id 'java'
-    id 'maven-publish'
+    id 'java-library'
+    id 're.alwyn974.groupez.publish' version '1.0.0'
+    id 'com.gradleup.shadow' version '9.0.0-beta11'
 }
 
 group = 'fr.traqueur'
 version = property("version")
+
+ext.targetFolder = file("target/")
+ext.classifier = System.getProperty("archive.classifier")
+ext.sha = System.getProperty("github.sha")
+
+if (ext.sha) {
+    version = ext.sha
+}
 
 repositories {
     mavenCentral()
@@ -24,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly "org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT"
+    compileOnly "org.spigotmc:spigot-api:1.21.8-R0.1-SNAPSHOT"
 
     // Hooks
     compileOnly 'io.th0rgal:oraxen:1.181.0'
@@ -43,6 +52,13 @@ tasks.register('generateVersionProperties') {
 
 processResources.dependsOn generateVersionProperties
 
+build.dependsOn shadowJar
+
+shadowJar {
+    archiveClassifier.set("")
+    destinationDirectory.set(project.ext.targetFolder)
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
@@ -50,11 +66,7 @@ java {
     withJavadocJar()
 }
 
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
+publishConfig {
+    githubOwner = "Traqueur-dev"
+    useRootProjectName = true
 }

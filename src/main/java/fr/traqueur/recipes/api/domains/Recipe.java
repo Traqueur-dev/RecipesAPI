@@ -1,6 +1,7 @@
 package fr.traqueur.recipes.api.domains;
 
 import fr.traqueur.recipes.api.RecipeType;
+import fr.traqueur.recipes.api.Util;
 import fr.traqueur.recipes.impl.domains.ItemRecipe;
 import fr.traqueur.recipes.impl.domains.ingredients.ItemStackIngredient;
 import fr.traqueur.recipes.impl.domains.ingredients.MaterialIngredient;
@@ -149,6 +150,39 @@ public interface Recipe {
      * @return The recipe.
      */
     Recipe addIngredient(Ingredient ingredient);
+
+    /**
+     * Add an ingredient parsed from a string identifier.
+     * Supports the same formats as YAML config:
+     * {@code "MATERIAL"}, {@code "material:NAME"}, {@code "item:NAME"},
+     * {@code "base64:XXX"}, {@code "tag:NAME"}, {@code "oraxen:id"}, {@code "itemsadder:id"}, etc.
+     * @param itemIdentifier the string identifier
+     * @return The recipe.
+     */
+    default Recipe addIngredient(String itemIdentifier) {
+        return addIngredient(Util.parseIngredient(itemIdentifier, null, false));
+    }
+
+    /**
+     * Add an ingredient parsed from a string identifier with a shaped-recipe sign.
+     * @param itemIdentifier the string identifier
+     * @param sign the sign character used in the shaped pattern
+     * @return The recipe.
+     */
+    default Recipe addIngredient(String itemIdentifier, Character sign) {
+        return addIngredient(Util.parseIngredient(itemIdentifier, sign, false));
+    }
+
+    /**
+     * Add an ingredient parsed from a string identifier.
+     * @param itemIdentifier the string identifier
+     * @param sign the sign character (null for shapeless)
+     * @param strict if true, uses strict matching ({@link StrictItemStackIngredient})
+     * @return The recipe.
+     */
+    default Recipe addIngredient(String itemIdentifier, Character sign, boolean strict) {
+        return addIngredient(Util.parseIngredient(itemIdentifier, sign, strict));
+    }
 
     /**
      * Set the group of the recipe.
