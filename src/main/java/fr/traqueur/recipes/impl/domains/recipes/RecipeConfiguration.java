@@ -107,7 +107,6 @@ public class RecipeConfiguration implements Recipe {
 
         if(configuration.contains(path + "pattern")) {
             this.pattern = configuration.getStringList(path+"pattern").toArray(new String[0]);
-            this.validatePattern();
         }
 
         if(!configuration.contains(path + "ingredients")) {
@@ -122,6 +121,11 @@ public class RecipeConfiguration implements Recipe {
 
             Ingredient ingred = Util.parseIngredient(material, sign, strict);
             this.ingredientList.add(ingred);
+        }
+
+        // Validate the pattern only after the ingredients are parsed, so their signs are known.
+        if(this.pattern != null) {
+            this.validatePattern();
         }
 
         if(!configuration.contains(path + "result.item")) {
